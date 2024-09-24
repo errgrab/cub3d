@@ -10,10 +10,13 @@ NAME	= cub3d
 all: $(NAME) test
 
 test: $(NAME)
-	./$(NAME) test_maps/t2.fdf
+	./$(NAME)
+
+leak: $(NAME)
+	valgrind ./$(NAME)
 
 $(MLX):
-	@make -sC $@
+	@make -sC $@ > /dev/null 2>&1
 
 $(NAME): $(OBJS) | $(LIB) $(MLX)
 	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $^ $(LDLIBS)
@@ -31,4 +34,4 @@ $(ODIR)/%.o: %.c
 	@mkdir -p $(@D)
 	$(CC) $(CFLAGS) -c $< -o $@
 
-.PHONY: all bonus clean fclean re $(LIB) $(MLX)
+.PHONY: all bonus clean fclean re $(MLX)
