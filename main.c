@@ -6,24 +6,17 @@
 /*   By: ecarvalh <ecarvalh@student.42porto.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/24 14:54:28 by ecarvalh          #+#    #+#             */
-/*   Updated: 2024/09/24 18:33:45 by ecarvalh         ###   ########.fr       */
+/*   Updated: 2024/09/25 23:33:03 by ecarvalh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
+
+//// Headers ///////////////////////////////////////////////////////////////////
 
 #include <X11/X.h>
 #include <X11/keysym.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include "mlx.h"
-
-/* Custom Allocation:
- *
- * void *ft_get_alloc(); // internal
- * void *ft_calloc();
- * void *ft_free();
- * void *ft_clean();
- *
- */
 
 typedef struct s_list t_list;
 struct s_list
@@ -32,7 +25,27 @@ struct s_list
 	t_list	*next;
 };
 
-t_list **ft_get_alloc()
+typedef struct s_mlx t_mlx;
+struct s_mlx
+{
+	void	*mlx;
+	void	*win;
+	void	*img;
+	char	*buf;
+	int		endian;
+};
+
+//// alloc.c ///////////////////////////////////////////////////////////////////
+
+/* Custom Allocator:
+ *
+ * void *ft_get_alloc(); // internal
+ * void *ft_calloc(size_t num, size_t size); // simple calloc
+ * void ft_free(void *ptr); // simple free
+ * void ft_clean(); // clear everything
+ */
+
+static t_list **ft_get_alloc()
 {
 	static t_list	*alloc;
 
@@ -93,25 +106,26 @@ void	ft_clean() {
 	}
 }
 
-typedef struct s_mlx t_mlx;
-struct s_mlx
-{
-	void	*mlx;
-	void	*win;
-};
+//// main.c ////////////////////////////////////////////////////////////////////
 
 t_mlx	*get_mlx()
 {
 	static t_mlx	mlx;
+
 	return (&mlx);
 }
 
 int	quit()
 {
 	auto t_mlx *mlx = get_mlx();
-	mlx_destroy_window(mlx->mlx, mlx->win);
-	mlx_destroy_display(mlx->mlx);
-	free(mlx->mlx);
+	if (mlx->win)
+		mlx_destroy_window(mlx->mlx, mlx->win);
+	if (mlx->mlx)
+	{
+		mlx_destroy_display(mlx->mlx);
+		free(mlx->mlx);
+	}
+	ft_clean();
 	exit(0);
 	return (0);
 }
@@ -128,14 +142,24 @@ int	loop()
 	return (0);
 }
 
-int main(void)
+void	init()
 {
 	auto t_mlx *mlx = get_mlx();
 	mlx->mlx = mlx_init();
-	mlx->win = mlx_new_window(mlx->mlx, 500, 500, "title");
+	mlx->win = mlx_new_window(mlx->mlx, 800, 500, "");
+	mlx->img = mlx_new_image(mlx->mlx, 800, 500);
+	auto int d = 0;
+	mlx->buf = mlx_get_data_addr(mlx->img, &d, &d, &mlx->endian);
+	if (!mlx->win || !mlx->img)
+		quit();
 	mlx_hook(mlx->win, KeyRelease, KeyReleaseMask, keyrelease, NULL);
 	mlx_hook(mlx->win, DestroyNotify, StructureNotifyMask, quit, NULL);
 	mlx_loop_hook(mlx->mlx, loop, NULL);
 	mlx_loop(mlx->mlx);
+}
+
+int	main(void)
+{
+	init();
 	return (0);
 }
