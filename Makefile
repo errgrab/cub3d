@@ -2,7 +2,7 @@ MLX		= minilibx-linux
 SRCS	= $(wildcard *.c)
 ODIR	= objs
 OBJS	= $(SRCS:%.c=$(ODIR)/%.o)
-CFLAGS	= -O3 -Wall -Wextra -Werror -pedantic -I. -I$(MLX)
+CFLAGS	= -O3 -Wall -Wextra -Werror -Wpedantic -I. -I$(MLX) --std=c99
 LDFLAGS	= -L$(MLX)
 LDLIBS	= -lmlx -lX11 -lXext -lm
 NAME	= cub3d

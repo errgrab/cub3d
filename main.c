@@ -6,7 +6,7 @@
 /*   By: ecarvalh <ecarvalh@student.42porto.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/24 14:54:28 by ecarvalh          #+#    #+#             */
-/*   Updated: 2024/09/26 18:36:11 by ecarvalh         ###   ########.fr       */
+/*   Updated: 2024/09/27 00:29:44 by ecarvalh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -41,6 +41,9 @@ typedef struct s_game t_game;
 struct s_game
 {
 	int	*map;
+	size_t	map_size;
+	size_t	map_width;
+	size_t	fps;
 	size_t	last_time;
 };
 
@@ -131,7 +134,6 @@ t_glb	*get_glb(void)
 	return (&glb);
 }
 
-
 int	quit(void)
 {
 	auto t_mlx *mlx = &get_glb()->mlx;
@@ -168,7 +170,6 @@ size_t	time_now(void)
 	return ((tv.tv_sec * 1000) + (tv.tv_usec / 1000));
 }
 
-
 int	loop(void)
 {
 	auto t_game *game = &get_glb()->game;
@@ -177,17 +178,33 @@ int	loop(void)
 	if (time_passed > 0)
 	{
 		auto size_t fps = 1000 / time_passed;
-		printf("fps: %zu\n", fps);
+		game->fps = fps;
 	}
 	game->last_time = now;
 	return (0);
+}
+
+void	*ft_memmove(void *dest, const void *src, size_t n)
+{
+	if (!dest || !src)
+		return (NULL);
+	auto char *d = dest;
+	auto const char *s = src;
+	if (dest <= src)
+		while (n--)
+			*d++ = *s++;
+	else
+		while (n--)
+			d[n] = s[n];
+	return (dest);
 }
 
 void	init_map_tmp(void)
 {
 	auto	t_game *game = &get_glb()->game;
 	game->last_time = time_now();
-	game->map = (int []){
+	auto int map_width = 10;
+	auto int map[] = {
 		1,1,1,1,1,1,1,1,1,1,
 		1,0,0,0,0,0,0,0,0,1,
 		1,0,0,1,1,1,1,0,0,1,
@@ -195,6 +212,20 @@ void	init_map_tmp(void)
 		1,0,0,0,0,0,0,0,0,1,
 		1,1,1,1,1,1,1,1,1,1,
 	};
+	auto int map_size = sizeof(map) / sizeof(int);
+	game->map = ft_calloc(map_size, sizeof(int));
+	game->map_size = map_size;
+	game->map_width = map_width;
+	if (!game->map)
+		quit();
+	ft_memmove(game->map, map, map_size);
+	for (int i = 0; i < map_size; i++)
+	{
+		if (i > 0 && i % map_width == 0)
+			printf("\n");
+		printf("%d ", map[i]);
+	}
+	printf("\n");
 }
 
 void	init(void)
