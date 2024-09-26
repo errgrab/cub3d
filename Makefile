@@ -13,7 +13,7 @@ test: $(NAME)
 	./$(NAME)
 
 leak: $(NAME)
-	valgrind ./$(NAME)
+	valgrind --leak-check=full --show-leak-kinds=all ./$(NAME)
 
 $(MLX):
 	@make -sC $@ > /dev/null 2>&1
