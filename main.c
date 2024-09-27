@@ -6,7 +6,7 @@
 /*   By: ecarvalh <ecarvalh@student.42porto.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/24 14:54:28 by ecarvalh          #+#    #+#             */
-/*   Updated: 2024/09/27 00:29:44 by ecarvalh         ###   ########.fr       */
+/*   Updated: 2024/09/27 00:39:12 by ecarvalh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -40,7 +40,7 @@ struct s_mlx
 typedef struct s_game t_game;
 struct s_game
 {
-	int	*map;
+	int		*map;
 	size_t	map_size;
 	size_t	map_width;
 	size_t	fps;
