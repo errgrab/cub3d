@@ -6,7 +6,7 @@
 /*   By: ecarvalh <ecarvalh@student.42porto.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/24 14:54:28 by ecarvalh          #+#    #+#             */
-/*   Updated: 2024/09/29 19:01:01 by ecarvalh         ###   ########.fr       */
+/*   Updated: 2024/09/29 21:17:59 by ecarvalh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,6 +25,8 @@
 #define WINDOW_WIDTH 640
 #define WINDOW_HEIGHT 480
 
+#define WHITE 0xffffffff
+
 typedef struct s_list t_list;
 struct s_list
 {
@@ -39,6 +41,8 @@ struct s_mlx
 	void	*win;
 	void	*img;
 	char	*buf;
+	int		bpp;
+	int		sl;
 	int		endian;
 };
 
@@ -49,6 +53,22 @@ struct s_map
 	size_t	size;
 	size_t	width;
 	bool	is_valid;
+};
+
+typedef struct s_bcolor t_bcolor;
+struct s_bcolor
+{
+	char	a;
+	char	r;
+	char	g;
+	char	b;
+};
+
+typedef union u_color t_color;
+union u_color
+{
+	t_bcolor	byte;
+	int			color;
 };
 
 typedef struct s_v2f t_v2f;
@@ -211,6 +231,28 @@ size_t	_tern(int cond, size_t t_val, size_t f_val)
 	return (f_val);
 }
 
+void	_xorswapi(int *a, int *b)
+{
+	*a ^= *b;
+	*b ^= *a;
+	*a ^= *b;
+}
+
+void	put_pixel(int x, int y, t_color color)
+{
+	auto t_glb *glb = get_glb();
+	auto char *dst = glb->mlx.buf + (y * glb->mlx.sl + x * (glb->mlx.bpp / 8));
+	*(unsigned int*)dst = color.color;
+}
+
+void	draw_verline(int x, int ystart, int yend, t_color color)
+{
+	if (ystart > yend)
+		_xorswapi(&ystart, &yend);
+	while (ystart < yend)
+		put_pixel(x, ystart++, color);
+}
+
 int	loop(void)
 {
 	time_set();
@@ -225,17 +267,62 @@ int	loop(void)
 			(int)glb->player.pos.x,
 			(int)glb->player.pos.y };
 		t_v2f ddis = (t_v2f){
-			_tern(rdir.x == 0, 1e30, fabsf(1 / rdir.x)),
-			_tern(rdir.y == 0, 1e30, fabsf(1 / rdir.y)) };
+			_tern(rdir.x == 0, 0xffffffff, fabsf(1 / rdir.x)),
+			_tern(rdir.y == 0, 0xffffffff, fabsf(1 / rdir.y)) };
 		bool hit = false;
-		bool isX = false;
+		bool isY = false;
 		t_v2f step;
 		t_v2f sidd;
 		if (rdir.x < 0)
 		{
-			// SOCORRO EU NN SEI MAIS OQ TO FAZENDO
+			step.x = -1;
+			sidd.x = (glb->player.pos.x - mapp.x) * ddis.x;
 		}
+		else
+		{
+			step.x = 1;
+			sidd.x = (mapp.x + 1.0 - glb->player.pos.x) * ddis.x;
+		}
+		if (rdir.y < 0)
+		{
+			step.y = -1;
+			sidd.y = (glb->player.pos.y - mapp.y) * ddis.y;
+		}
+		else
+		{
+			step.y = 1;
+			sidd.y = (mapp.y + 1.0 - glb->player.pos.y) * ddis.y;
+		}
+		while (hit == false)
+		{
+			if (sidd.x < sidd.y)
+			{
+				sidd.x += ddis.x;
+				mapp.x += step.x;
+				isY = false;
+			}
+			else
+			{
+				sidd.y += ddis.y;
+				mapp.y += step.y;
+				isY = true;
+			}
+			if (glb->map.data[(int)mapp.x + (int)mapp.y * (int)glb->map.width] > 0)
+				hit = true;
+		}
+		float walldist = _tern(!isY, (sidd.x - ddis.x), (sidd.y - ddis.y));
+		int wallheight = (int)(WINDOW_HEIGHT / walldist);
+		int start = -wallheight / 2 + WINDOW_HEIGHT / 2;
+		int end = wallheight / 2 + WINDOW_HEIGHT / 2;
+		start = _tern(start < 0, 0, start);
+		end = _tern(start >= WINDOW_HEIGHT, 0, end);
+		t_color color;
+		color.color = WHITE;
+		if (isY)
+			color.color = color.color / 2;
+		draw_verline(x, start, end, color);
 	}
+	mlx_put_image_to_window(glb->mlx.mlx, glb->mlx.win, glb->mlx.img, 0, 0);
 	return (0);
 }
 
@@ -295,8 +382,7 @@ void	init(void)
 	mlx->mlx = mlx_init();
 	mlx->win = mlx_new_window(mlx->mlx, 800, 500, "");
 	mlx->img = mlx_new_image(mlx->mlx, 800, 500);
-	auto int d = 0;
-	mlx->buf = mlx_get_data_addr(mlx->img, &d, &d, &mlx->endian);
+	mlx->buf = mlx_get_data_addr(mlx->img, &mlx->bpp, &mlx->sl, &mlx->endian);
 	if (!mlx->win || !mlx->img)
 		quit();
 	mlx_hook(mlx->win, KeyRelease, KeyReleaseMask, keyrelease, NULL);
