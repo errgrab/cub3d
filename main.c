@@ -6,7 +6,7 @@
 /*   By: ecarvalh <ecarvalh@student.42porto.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/24 14:54:28 by ecarvalh          #+#    #+#             */
-/*   Updated: 2024/09/29 21:17:59 by ecarvalh         ###   ########.fr       */
+/*   Updated: 2024/09/30 19:33:18 by ecarvalh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,7 +25,7 @@
 #define WINDOW_WIDTH 640
 #define WINDOW_HEIGHT 480
 
-#define WHITE 0xffffffff
+#define WHITE (t_color){ .color = 0xffffffff }
 
 typedef struct s_list t_list;
 struct s_list
@@ -245,6 +245,17 @@ void	put_pixel(int x, int y, t_color color)
 	*(unsigned int*)dst = color.color;
 }
 
+void	clear(t_color color)
+{
+	auto int x = -1;
+	while (++x < WINDOW_WIDTH)
+	{
+		auto int y = 0;
+		while (y < WINDOW_HEIGHT)
+			put_pixel(x, y++, color);
+	}
+}
+
 void	draw_verline(int x, int ystart, int yend, t_color color)
 {
 	if (ystart > yend)
@@ -266,9 +277,11 @@ int	loop(void)
 		t_v2f mapp = (t_v2f){
 			(int)glb->player.pos.x,
 			(int)glb->player.pos.y };
+		printf("%f %f\n", rdir.x, rdir.y);
+		printf("%f %f\n", fabsf(1/rdir.x), fabsf(1/rdir.y));
 		t_v2f ddis = (t_v2f){
-			_tern(rdir.x == 0, 0xffffffff, fabsf(1 / rdir.x)),
-			_tern(rdir.y == 0, 0xffffffff, fabsf(1 / rdir.y)) };
+			_tern(rdir.x == 0, 1, fabsf(1 / rdir.x)),
+			_tern(rdir.y == 0, 1, fabsf(1 / rdir.y)) };
 		bool hit = false;
 		bool isY = false;
 		t_v2f step;
@@ -293,7 +306,8 @@ int	loop(void)
 			step.y = 1;
 			sidd.y = (mapp.y + 1.0 - glb->player.pos.y) * ddis.y;
 		}
-		while (hit == false)
+		int try = 0;
+		while (hit == false && try < 500)
 		{
 			if (sidd.x < sidd.y)
 			{
@@ -307,17 +321,23 @@ int	loop(void)
 				mapp.y += step.y;
 				isY = true;
 			}
-			if (glb->map.data[(int)mapp.x + (int)mapp.y * (int)glb->map.width] > 0)
-				hit = true;
+			size_t pos = (size_t)(mapp.x + mapp.y * glb->map.width);
+			if (pos < glb->map.size)
+				if (glb->map.data[pos])
+					hit = true;
+			try++;
 		}
 		float walldist = _tern(!isY, (sidd.x - ddis.x), (sidd.y - ddis.y));
-		int wallheight = (int)(WINDOW_HEIGHT / walldist);
+		int wallheight = 0;
+		if (walldist)
+			wallheight = (int)(WINDOW_HEIGHT / walldist);
+		else
+			wallheight = 10000;
 		int start = -wallheight / 2 + WINDOW_HEIGHT / 2;
 		int end = wallheight / 2 + WINDOW_HEIGHT / 2;
 		start = _tern(start < 0, 0, start);
-		end = _tern(start >= WINDOW_HEIGHT, 0, end);
-		t_color color;
-		color.color = WHITE;
+		end = _tern(start >= WINDOW_HEIGHT, WINDOW_HEIGHT - 1, end);
+		t_color color = WHITE;
 		if (isY)
 			color.color = color.color / 2;
 		draw_verline(x, start, end, color);
@@ -393,6 +413,7 @@ void	init(void)
 
 int	main(void)
 {
+	init_player();
 	init_map_tmp();
 	init();
 	return (0);

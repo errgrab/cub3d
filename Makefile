@@ -3,7 +3,7 @@ SRCS	= $(wildcard *.c)
 ODIR	= objs
 OBJS	= $(SRCS:%.c=$(ODIR)/%.o)
 CFLAGS	+= -O3 --std=c99
-CFLAGS	+= -Wall -Wextra -Werror -Wpedantic
+CFLAGS	+= -Wall -Wextra -Werror -Wpedantic -g
 CFLAGS	+= -I. -I$(MLX)
 CFLAGS	+= -fsanitize=address
 LDFLAGS	= -L$(MLX)
