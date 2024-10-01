@@ -6,7 +6,7 @@
 /*   By: ecarvalh <ecarvalh@student.42porto.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/24 14:54:28 by ecarvalh          #+#    #+#             */
-/*   Updated: 2024/09/30 19:33:18 by ecarvalh         ###   ########.fr       */
+/*   Updated: 2024/10/01 18:51:48 by ecarvalh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,173 +22,27 @@
 #include <math.h>       // (almost all of them)
 #include "mlx.h"        // mlx_*
 
-#define WINDOW_WIDTH 640
-#define WINDOW_HEIGHT 480
+#include "cub3d.h"
 
-#define WHITE (t_color){ .color = 0xffffffff }
-
-typedef struct s_list t_list;
-struct s_list
+t_global	*global(void)
 {
-	void	*ptr;
-	t_list	*next;
-};
+	static t_global	global;
 
-typedef struct s_mlx t_mlx;
-struct s_mlx
-{
-	void	*mlx;
-	void	*win;
-	void	*img;
-	char	*buf;
-	int		bpp;
-	int		sl;
-	int		endian;
-};
-
-typedef struct s_map t_map;
-struct s_map
-{
-	int		*data;
-	size_t	size;
-	size_t	width;
-	bool	is_valid;
-};
-
-typedef struct s_bcolor t_bcolor;
-struct s_bcolor
-{
-	char	a;
-	char	r;
-	char	g;
-	char	b;
-};
-
-typedef union u_color t_color;
-union u_color
-{
-	t_bcolor	byte;
-	int			color;
-};
-
-typedef struct s_v2f t_v2f;
-struct s_v2f
-{
-	float	x;
-	float	y;
-};
-
-typedef struct s_pl t_pl;
-struct s_pl
-{
-	t_v2f	pos;
-	t_v2f	dir;
-	t_v2f	plane;
-};
-
-typedef struct s_glb t_glb;
-struct s_glb
-{
-	t_mlx	mlx;
-	t_map	map;
-	t_pl	player;
-	size_t	time_last;
-	size_t	time_now;
-	float	dt;
-	size_t	fps;
-};
-
-//// alloc.c ///////////////////////////////////////////////////////////////////
-
-/* Custom Allocator:
- *
- * void *ft_get_alloc(); // internal
- * void *ft_calloc(size_t num, size_t size); // simple calloc
- * void ft_free(void *ptr); // simple free
- * void ft_clean(); // clear everything
- */
-
-static t_list **ft_get_alloc()
-{
-	static t_list	*alloc;
-
-	return (&alloc);
-}
-
-void	*ft_calloc(size_t num, size_t size)
-{
-	auto void *ptr = malloc(num * size);
-	if (ptr)
-	{
-		auto t_list **root = ft_get_alloc();
-		auto size_t i = num * size;
-		while (i && i--)
-			((char*)ptr)[i] = 0;
-		t_list *new_node = (t_list *)malloc(sizeof(t_list));
-		if (new_node)
-		{
-			new_node->ptr = ptr;
-			new_node->next = *root;
-			*root = new_node;
-		} else
-			return (free(ptr), NULL);
-	}
-	return (ptr);
-}
-
-void	ft_free(void *ptr)
-{
-	auto t_list **node = ft_get_alloc();
-	auto t_list *prev = NULL;
-	while (*node)
-	{
-		if ((*node)->ptr == ptr)
-		{
-			auto t_list *to_free = *node;
-			if (prev)
-				prev->next = (*node)->next;
-			else
-				*node = (*node)->next;
-			free(to_free->ptr);
-			free(to_free);
-			return ;
-		}
-		prev = *node;
-		node = &(*node)->next;
-	}
-}
-
-void	ft_clean() {
-	auto t_list **node = ft_get_alloc();
-	while (*node)
-	{
-		auto t_list *to_free = *node;
-		*node = (*node)->next;
-		free(to_free->ptr);
-		free(to_free);
-	}
-}
-
-//// main.c ////////////////////////////////////////////////////////////////////
-
-t_glb	*get_glb(void)
-{
-	static t_glb	glb;
-
-	return (&glb);
+	return (&global);
 }
 
 int	quit(void)
 {
-	auto t_mlx *mlx = &get_glb()->mlx;
+	auto t_mlx * mlx = &global()->mlx;
 	if (mlx->win)
-		mlx_destroy_window(mlx->mlx, mlx->win);
-	if (mlx->img)
-		mlx_destroy_image(mlx->mlx, mlx->img);
-	if (mlx->mlx)
+		mlx_destroy_window(mlx->ptr, mlx->win);
+	auto t_img * img = &mlx->frame;
+	if (img->ptr)
+		mlx_destroy_image(mlx->ptr, img->ptr);
+	if (mlx->ptr)
 	{
-		mlx_destroy_display(mlx->mlx);
-		free(mlx->mlx);
+		mlx_destroy_display(mlx->ptr);
+		free(mlx->ptr);
 	}
 	ft_clean();
 	exit(0);
@@ -214,14 +68,14 @@ size_t	time_now(void)
 	return ((tv.tv_sec * 1000) + (tv.tv_usec / 1000));
 }
 
-void	time_set(void)
+void	time_update(void)
 {
-	auto t_glb *glb = get_glb();
-	glb->time_now = time_now();
-	glb->dt = glb->time_now - glb->time_last;
-	if (glb->dt > 0)
-		glb->fps = 1000 / glb->dt;
-	glb->time_last = glb->time_now;
+	auto t_time * time = &global()->time;
+	time->now = time_now();
+	time->dt = time->now - time->before;
+	if (time->dt > 0)
+		time->fps = 1000 / time->dt;
+	time->before = time->now;
 }
 
 size_t	_tern(int cond, size_t t_val, size_t f_val)
@@ -240,18 +94,22 @@ void	_xorswapi(int *a, int *b)
 
 void	put_pixel(int x, int y, t_color color)
 {
-	auto t_glb *glb = get_glb();
-	auto char *dst = glb->mlx.buf + (y * glb->mlx.sl + x * (glb->mlx.bpp / 8));
-	*(unsigned int*)dst = color.color;
+	auto t_img * img = &global()->mlx.frame;
+	if (x >= 0 && x < img->width && y >= 0 && y < img->height)
+	{
+		auto char *dst = img->buf + (y * img->sl + x * (img->bpp / 8));
+		*(t_color *)dst = color;
+	}
 }
 
 void	clear(t_color color)
 {
+	auto t_img * img = &global()->mlx.frame;
 	auto int x = -1;
-	while (++x < WINDOW_WIDTH)
+	while (++x < img->width)
 	{
 		auto int y = 0;
-		while (y < WINDOW_HEIGHT)
+		while (y < img->height)
 			put_pixel(x, y++, color);
 	}
 }
@@ -264,85 +122,79 @@ void	draw_verline(int x, int ystart, int yend, t_color color)
 		put_pixel(x, ystart++, color);
 }
 
+int	sign(float v)
+{
+	if (v < 0)
+		return (-1);
+	else if (v > 0)
+		return (1);
+	else
+		return (0);
+}
+
 int	loop(void)
 {
-	time_set();
-	auto t_glb *glb = get_glb();
-	for (int x = 0; x < WINDOW_WIDTH; x++)
+	time_update();
+	auto t_usr * usr = &global()->usr;
+	auto t_map * map = &global()->map;
+	auto t_mlx * mlx = &global()->mlx;
+	auto t_img * img = &global()->mlx.frame;
+	for (int x = 0; x < img->width; x++)
 	{
-		float cx = 2 * x / (float)WINDOW_WIDTH - 1;
-		t_v2f rdir = (t_v2f){
-			glb->player.dir.x + glb->player.plane.x * cx,
-			glb->player.dir.y + glb->player.plane.y * cx };
-		t_v2f mapp = (t_v2f){
-			(int)glb->player.pos.x,
-			(int)glb->player.pos.y };
-		printf("%f %f\n", rdir.x, rdir.y);
-		printf("%f %f\n", fabsf(1/rdir.x), fabsf(1/rdir.y));
-		t_v2f ddis = (t_v2f){
-			_tern(rdir.x == 0, 1, fabsf(1 / rdir.x)),
-			_tern(rdir.y == 0, 1, fabsf(1 / rdir.y)) };
-		bool hit = false;
-		bool isY = false;
-		t_v2f step;
-		t_v2f sidd;
-		if (rdir.x < 0)
-		{
-			step.x = -1;
-			sidd.x = (glb->player.pos.x - mapp.x) * ddis.x;
-		}
+		auto t_dda dda = {0};
+		// normalized [-1, 1] camera vector
+		dda.xc = (2 * (x / (float)(img->width))) - 1;
+		dda.dir = {
+			usr->dir.x + usr->plane.x * dda.xc,
+			usr->dir.y + usr->plane.y * dda.xc};
+		dda.pos = usr->pos;
+		dda.ipos = {(int)dda.pos.x, (int)dda.pos.y};
+		if (fabsf(dda.dir.x) < 1e-20)
+			dda.dd.x = 1e30;
 		else
-		{
-			step.x = 1;
-			sidd.x = (mapp.x + 1.0 - glb->player.pos.x) * ddis.x;
-		}
-		if (rdir.y < 0)
-		{
-			step.y = -1;
-			sidd.y = (glb->player.pos.y - mapp.y) * ddis.y;
-		}
+			dda.dd.x = fabsf(1/dda.dir.x);
+		if (fabsf(dda.dir.y) < 1e-20)
+			dda.dd.y = 1e30;
 		else
+			dda.dd.y = fabsf(1/dda.dir.y);
+		dda.sd = dda.dd;
+		if (dda.dir.x < 0)
+			dda.sd.x *= dda.pos.x - dda.ipos.x;
+		else
+			dda.sd.x *= dda.ipos.x + 1 - dda.pos.x;
+		if (dda.dir.y < 0)
+			dda.sd.y *= dda.pos.y - dda.ipos.y;
+		else
+			dda.sd.y *= dda.ipos.y + 1 - dda.pos.y;
+		dda.step = {sign(dda.dir.x), sign(dda.dir.y)};
+		auto struct {int val, isy; t_v2f pos;} hit = { false, false, {0, 0}};
+		while (!hit.val)
 		{
-			step.y = 1;
-			sidd.y = (mapp.y + 1.0 - glb->player.pos.y) * ddis.y;
-		}
-		int try = 0;
-		while (hit == false && try < 500)
-		{
-			if (sidd.x < sidd.y)
+			if (dda.sd.x < dda.sd.y)
 			{
-				sidd.x += ddis.x;
-				mapp.x += step.x;
-				isY = false;
+				dda.sd.x += dda.dd.x;
+				dda.ipos.x += dda.step.x;
+				hit.isy = false;
 			}
 			else
 			{
-				sidd.y += ddis.y;
-				mapp.y += step.y;
-				isY = true;
+				dda.sd.y += dda.dd.y;
+				dda.ipos.y += dda.step.y;
+				hit.isy = true;
 			}
-			size_t pos = (size_t)(mapp.x + mapp.y * glb->map.width);
-			if (pos < glb->map.size)
-				if (glb->map.data[pos])
-					hit = true;
-			try++;
+			hit.val = map->data[ipos.y * map->width + ipos.x];
 		}
-		float walldist = _tern(!isY, (sidd.x - ddis.x), (sidd.y - ddis.y));
-		int wallheight = 0;
-		if (walldist)
-			wallheight = (int)(WINDOW_HEIGHT / walldist);
-		else
-			wallheight = 10000;
-		int start = -wallheight / 2 + WINDOW_HEIGHT / 2;
-		int end = wallheight / 2 + WINDOW_HEIGHT / 2;
-		start = _tern(start < 0, 0, start);
-		end = _tern(start >= WINDOW_HEIGHT, WINDOW_HEIGHT - 1, end);
-		t_color color = WHITE;
-		if (isY)
-			color.color = color.color / 2;
-		draw_verline(x, start, end, color);
+		t_color color;
+		switch (hit.val) {
+		case 1: color = CW; break;
+		case 2: color = CR; break;
+		case 3: color = CB; break;
+		case 4: color = CM; break;
+		}
+		if (hit.isy)
+			color = 0xff000000 & ((color & 0xffffff) * 0xc0c0c0);
 	}
-	mlx_put_image_to_window(glb->mlx.mlx, glb->mlx.win, glb->mlx.img, 0, 0);
+	mlx_put_image_to_window(mlx->ptr, mlx->win, img->ptr, 0, 0);
 	return (0);
 }
 
@@ -365,56 +217,59 @@ void	*ft_memmove(void *dest, const void *src, size_t n)
 
 void	init_map_tmp(void)
 {
-	auto t_glb *glb = get_glb();
-	glb->time_last = time_now();
+	auto t_time * time = &global()->time;
+	auto t_map * map = &global()->map;
+	time->before = time_now();
 	auto int map_width = 8;
-	auto int map[] = {
+	auto int map_data[] = {
 		1, 1, 1, 1, 1, 1, 1, 1,
 		1, 0, 0, 0, 0, 0, 0, 1,
 		1, 0, 0, 0, 0, 0, 0, 1,
-		1, 0, 0, 1, 1, 0, 0, 1,
-		1, 0, 0, 1, 1, 0, 0, 1,
+		1, 0, 0, 2, 3, 0, 0, 1,
+		1, 0, 0, 4, 2, 0, 0, 1,
 		1, 0, 0, 0, 0, 0, 0, 1,
 		1, 0, 0, 0, 0, 0, 0, 1,
 		1, 1, 1, 1, 1, 1, 1, 1,
 	};
 	auto int map_size = sizeof(map) / sizeof(int);
-	glb->map.data = ft_calloc(map_size, sizeof(int));
-	glb->map.size = map_size;
-	glb->map.width = map_width;
-	glb->map.is_valid = true;
-	if (!glb->map.data)
+	map->data = ft_calloc(map_size, sizeof(int));
+	map->width = map_width;
+	map->height = map_size / map_width;
+	if (!map->data)
 		quit();
-	ft_memmove(glb->map.data, map, map_size);
+	ft_memmove(map->data, map_data, map_size);
 }
 
-void	init_player(void)
+void	init_usr_tmp(void)
 {
-	auto t_glb *glb = get_glb();
-	glb->player.pos = (t_v2f){ 6, 6 };
-	glb->player.dir = (t_v2f){ -1, 0 };
-	glb->player.plane = (t_v2f){ 0, 0.66 };
+	auto t_usr * usr = &global()->usr;
+	usr->pos = (t_v2f){6, 6};
+	usr->dir = (t_v2f){-1, 0};
+	usr->plane = (t_v2f){0, 0.66};
 }
 
 void	init(void)
 {
-	auto t_mlx *mlx = &get_glb()->mlx;
-	mlx->mlx = mlx_init();
-	mlx->win = mlx_new_window(mlx->mlx, 800, 500, "");
-	mlx->img = mlx_new_image(mlx->mlx, 800, 500);
-	mlx->buf = mlx_get_data_addr(mlx->img, &mlx->bpp, &mlx->sl, &mlx->endian);
-	if (!mlx->win || !mlx->img)
+	auto t_mlx * mlx = &global()->mlx;
+	auto t_img * img = &mlx->frame;
+	img->width = 640;
+	img->height = 480;
+	mlx->ptr = mlx_init();
+	mlx->win = mlx_new_window(mlx->ptr, img->width, img->height, "");
+	img->ptr = mlx_new_image(mlx->ptr, img->width, img->height);
+	if (!mlx->ptr || !mlx->win || !img->ptr)
 		quit();
+	img->buf = mlx_get_data_addr(img->ptr, &img->bpp, &img->sl, &img->endian);
 	mlx_hook(mlx->win, KeyRelease, KeyReleaseMask, keyrelease, NULL);
 	mlx_hook(mlx->win, DestroyNotify, StructureNotifyMask, quit, NULL);
-	mlx_loop_hook(mlx->mlx, loop, NULL);
-	mlx_loop(mlx->mlx);
+	mlx_loop_hook(mlx->ptr, loop, NULL);
+	mlx_loop(mlx->ptr);
+	init_usr_tmp();
+	init_map_tmp();
 }
 
 int	main(void)
 {
-	init_player();
-	init_map_tmp();
 	init();
 	return (0);
 }
