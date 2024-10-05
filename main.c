@@ -6,7 +6,7 @@
 /*   By: ecarvalh <ecarvalh@student.42porto.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/24 14:54:28 by ecarvalh          #+#    #+#             */
-/*   Updated: 2024/10/05 16:23:07 by ecarvalh         ###   ########.fr       */
+/*   Updated: 2024/10/05 19:01:56 by ecarvalh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -132,6 +132,20 @@ int	sign(float v)
 		return (0);
 }
 
+int	min(int a, int b)
+{
+	if (a < b)
+		return (a);
+	return (b);
+}
+
+int	max(int a, int b)
+{
+	if (a > b)
+		return (a);
+	return (b);
+}
+
 int	loop(void)
 {
 	time_update();
@@ -182,8 +196,14 @@ int	loop(void)
 				dda.ipos.y += dda.step.y;
 				hit.isy = true;
 			}
-			hit.val = map->data[dda.ipos.y * map->width + dda.ipos.x];
+			if (dda.ipos.y * (int)map->width + dda.ipos.x >= (int)map->width * (int)map->height) {
+				printf("%d %d\n", dda.ipos.x, dda.ipos.y);
+				printf("%zu %zu\n", map->width, map->height);
+				break;
+			}
+			hit.val = map->data[dda.ipos.y * (int)map->width + dda.ipos.x];
 		}
+		printf("%d\n", hit.val);
 		t_color color;
 		switch (hit.val) {
 		case 1: color = CW; break;
@@ -194,16 +214,17 @@ int	loop(void)
 		if (hit.isy)
 			color = 0xff000000 & ((color & 0xffffff) * 0xc0c0c0);
 		hit.pos = (t_v2f){dda.pos.x + dda.sd.x, dda.pos.y + dda.sd.y};
-		if (hit.side == 0)
-			auto const float dperp = (dda.sd.x - dda.sd.x);
+		auto float dperp;
+		if (!hit.isy)
+			dperp = (dda.sd.x - dda.sd.x);
 		else
-			auto const float dperp = (dda.sd.y - dda.sd.y);
-		auto const int h = (int)(img.height / dperp);
-		auto const int y0 = max((img.height / 2) - (h / 2), 0);
-		auto const int y1 = min((img.height / 2) + (h / 2), img.height - 1);
+			dperp = (dda.sd.y - dda.sd.y);
+		auto const int h = (int)(img->height / dperp);
+		auto const int y0 = max((img->height / 2) - (h / 2), 0);
+		auto const int y1 = min((img->height / 2) + (h / 2), img->height - 1);
 		draw_verline(x, 0, y0, 0xff202020);
 		draw_verline(x, y0, y1, color);
-		draw_verline(x, y1, img.height - 1, 0xff505050);
+		draw_verline(x, y1, img->height - 1, 0xff505050);
 	}
 	mlx_put_image_to_window(mlx->ptr, mlx->win, img->ptr, 0, 0);
 	return (0);
@@ -242,10 +263,10 @@ void	init_map_tmp(void)
 		1, 0, 0, 0, 0, 0, 0, 1,
 		1, 1, 1, 1, 1, 1, 1, 1,
 	};
-	auto int map_size = sizeof(map) / sizeof(int);
+	auto int map_size = sizeof(map_data) / sizeof(int);
 	map->data = ft_calloc(map_size, sizeof(int));
 	map->width = map_width;
-	map->height = map_size / map_width;
+	map->height = map_width;
 	if (!map->data)
 		quit();
 	ft_memmove(map->data, map_data, map_size);
@@ -261,6 +282,8 @@ void	init_usr_tmp(void)
 
 void	init(void)
 {
+	init_usr_tmp();
+	init_map_tmp();
 	auto t_mlx * mlx = &global()->mlx;
 	auto t_img * img = &mlx->frame;
 	img->width = 640;
@@ -275,8 +298,6 @@ void	init(void)
 	mlx_hook(mlx->win, DestroyNotify, StructureNotifyMask, quit, NULL);
 	mlx_loop_hook(mlx->ptr, loop, NULL);
 	mlx_loop(mlx->ptr);
-	init_usr_tmp();
-	init_map_tmp();
 }
 
 int	main(void)
