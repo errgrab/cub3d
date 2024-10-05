@@ -6,7 +6,7 @@
 /*   By: ecarvalh <ecarvalh@student.42porto.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/24 14:54:28 by ecarvalh          #+#    #+#             */
-/*   Updated: 2024/10/01 18:51:48 by ecarvalh         ###   ########.fr       */
+/*   Updated: 2024/10/05 16:21:58 by ecarvalh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -193,6 +193,17 @@ int	loop(void)
 		}
 		if (hit.isy)
 			color = 0xff000000 & ((color & 0xffffff) * 0xc0c0c0);
+		hit.pos = (t_v2f){dda.pos.x + dda.sd.x, dda.pos.y + dda.sd.y};
+		if (hit.side == 0)
+			auto const float dperp = (dda.sd.x - dda.sd.x);
+		else
+			auto const float dperp = (dda.sd.y - dda.sd.y);
+		auto const int h = (int)(img.height / dperp);
+		auto const int y0 = max((img.height / 2) - (h / 2), 0);
+		auto const int y1 = min((img.height / 2) + (h / 2), img.height - 1);
+		draw_verline(x, 0, y0, 0xff202020);
+		draw_verline(x, y0, y1, color);
+		draw_verline(x, y1, img.height - 1, 0xff505050);
 	}
 	mlx_put_image_to_window(mlx->ptr, mlx->win, img->ptr, 0, 0);
 	return (0);
