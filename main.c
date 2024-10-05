@@ -6,7 +6,7 @@
 /*   By: ecarvalh <ecarvalh@student.42porto.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/24 14:54:28 by ecarvalh          #+#    #+#             */
-/*   Updated: 2024/10/01 18:51:48 by ecarvalh         ###   ########.fr       */
+/*   Updated: 2024/10/05 14:21:56 by ecarvalh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -144,11 +144,11 @@ int	loop(void)
 		auto t_dda dda = {0};
 		// normalized [-1, 1] camera vector
 		dda.xc = (2 * (x / (float)(img->width))) - 1;
-		dda.dir = {
+		dda.dir = (t_v2f){
 			usr->dir.x + usr->plane.x * dda.xc,
 			usr->dir.y + usr->plane.y * dda.xc};
 		dda.pos = usr->pos;
-		dda.ipos = {(int)dda.pos.x, (int)dda.pos.y};
+		dda.ipos = (t_v2i){(int)dda.pos.x, (int)dda.pos.y};
 		if (fabsf(dda.dir.x) < 1e-20)
 			dda.dd.x = 1e30;
 		else
@@ -166,8 +166,8 @@ int	loop(void)
 			dda.sd.y *= dda.pos.y - dda.ipos.y;
 		else
 			dda.sd.y *= dda.ipos.y + 1 - dda.pos.y;
-		dda.step = {sign(dda.dir.x), sign(dda.dir.y)};
-		auto struct {int val, isy; t_v2f pos;} hit = { false, false, {0, 0}};
+		dda.step = (t_v2i){sign(dda.dir.x), sign(dda.dir.y)};
+		auto struct {int val, isy; t_v2f pos;} hit = {0, 0, {0, 0}};
 		while (!hit.val)
 		{
 			if (dda.sd.x < dda.sd.y)
@@ -182,7 +182,7 @@ int	loop(void)
 				dda.ipos.y += dda.step.y;
 				hit.isy = true;
 			}
-			hit.val = map->data[ipos.y * map->width + ipos.x];
+			hit.val = map->data[dda.ipos.y * map->width + dda.ipos.x];
 		}
 		t_color color;
 		switch (hit.val) {
