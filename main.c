@@ -6,7 +6,7 @@
 /*   By: ecarvalh <ecarvalh@student.42porto.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/24 14:54:28 by ecarvalh          #+#    #+#             */
-/*   Updated: 2024/10/05 19:01:56 by ecarvalh         ###   ########.fr       */
+/*   Updated: 2024/10/08 18:29:00 by ecarvalh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -128,8 +128,7 @@ int	sign(float v)
 		return (-1);
 	else if (v > 0)
 		return (1);
-	else
-		return (0);
+	return (0);
 }
 
 int	min(int a, int b)
@@ -153,37 +152,19 @@ int	loop(void)
 	auto t_map * map = &global()->map;
 	auto t_mlx * mlx = &global()->mlx;
 	auto t_img * img = &global()->mlx.frame;
-	for (int x = 0; x < img->width; x++)
-	{
+	for (int x = 0; x < img->width; x++) {
 		auto t_dda dda = {0};
-		// normalized [-1, 1] camera vector
 		dda.xc = (2 * (x / (float)(img->width))) - 1;
 		dda.dir = (t_v2f){
 			usr->dir.x + usr->plane.x * dda.xc,
 			usr->dir.y + usr->plane.y * dda.xc};
 		dda.pos = usr->pos;
 		dda.ipos = (t_v2i){(int)dda.pos.x, (int)dda.pos.y};
-		if (fabsf(dda.dir.x) < 1e-20)
-			dda.dd.x = 1e30;
-		else
-			dda.dd.x = fabsf(1/dda.dir.x);
-		if (fabsf(dda.dir.y) < 1e-20)
-			dda.dd.y = 1e30;
-		else
-			dda.dd.y = fabsf(1/dda.dir.y);
-		dda.sd = dda.dd;
-		if (dda.dir.x < 0)
-			dda.sd.x *= dda.pos.x - dda.ipos.x;
-		else
-			dda.sd.x *= dda.ipos.x + 1 - dda.pos.x;
-		if (dda.dir.y < 0)
-			dda.sd.y *= dda.pos.y - dda.ipos.y;
-		else
-			dda.sd.y *= dda.ipos.y + 1 - dda.pos.y;
 		dda.step = (t_v2i){sign(dda.dir.x), sign(dda.dir.y)};
-		auto struct {int val, isy; t_v2f pos;} hit = {0, 0, {0, 0}};
-		while (!hit.val)
+		auto struct {int try, val, isy; t_v2f pos;} hit = {0, 0, 0, {0, 0}};
+		while (!hit.val && hit.try <= 50)
 		{
+			/*
 			if (dda.sd.x < dda.sd.y)
 			{
 				dda.sd.x += dda.dd.x;
@@ -196,20 +177,20 @@ int	loop(void)
 				dda.ipos.y += dda.step.y;
 				hit.isy = true;
 			}
-			if (dda.ipos.y * (int)map->width + dda.ipos.x >= (int)map->width * (int)map->height) {
-				printf("%d %d\n", dda.ipos.x, dda.ipos.y);
-				printf("%zu %zu\n", map->width, map->height);
-				break;
-			}
+			*/
+			dda.ipos.x += dda.step.x;
+			dda.ipos.y += dda.step.y;
+			hit.try++;
+			if (dda.ipos.y * (int)map->width + dda.ipos.x >= (int)map->width * (int)map->height)
+				hit.val = 1;
 			hit.val = map->data[dda.ipos.y * (int)map->width + dda.ipos.x];
 		}
-		printf("%d\n", hit.val);
 		t_color color;
 		switch (hit.val) {
-		case 1: color = CW; break;
-		case 2: color = CR; break;
-		case 3: color = CB; break;
-		case 4: color = CM; break;
+			case 1: color = CW; break;
+			case 2: color = CR; break;
+			case 3: color = CB; break;
+			case 4: color = CM; break;
 		}
 		if (hit.isy)
 			color = 0xff000000 & ((color & 0xffffff) * 0xc0c0c0);
