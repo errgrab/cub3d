@@ -6,7 +6,7 @@
 /*   By: ecarvalh <ecarvalh@student.42porto.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/01 16:10:01 by ecarvalh          #+#    #+#             */
-/*   Updated: 2024/10/01 18:51:49 by ecarvalh         ###   ########.fr       */
+/*   Updated: 2024/10/09 19:31:09 by ecarvalh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,18 +26,11 @@
 
 typedef unsigned int	t_color;
 
-typedef struct s_v2f	t_v2f;
-struct s_v2f
+typedef struct s_v2	t_v2;
+struct s_v2
 {
 	float	x;
 	float	y;
-};
-
-typedef struct s_v2i	t_v2i;
-struct s_v2i
-{
-	int	x;
-	int	y;
 };
 
 typedef struct s_list	t_list;
@@ -78,9 +71,9 @@ struct s_map
 typedef struct s_usr	t_usr;
 struct s_usr
 {
-	t_v2f	pos;
-	t_v2f	dir;
-	t_v2f	plane;
+	t_v2	pos;
+	t_v2	dir;
+	t_v2	plane;
 };
 
 typedef struct s_time	t_time;
@@ -99,18 +92,6 @@ struct	s_global
 	t_map	map;
 	t_usr	usr;
 	t_time	time;
-};
-
-typedef struct s_dda	t_dda;
-struct s_dda
-{
-	float	xc;
-	t_v2f	dir;
-	t_v2f	pos;
-	t_v2i	ipos;
-	t_v2f	dd;
-	t_v2f	sd;
-	t_v2i	step;
 };
 
 // alloc.c
