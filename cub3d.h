@@ -6,47 +6,47 @@
 /*   By: ecarvalh <ecarvalh@student.42porto.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/01 16:10:01 by ecarvalh          #+#    #+#             */
-/*   Updated: 2024/10/09 19:31:09 by ecarvalh         ###   ########.fr       */
+/*   Updated: 2024/10/11 01:47:23 by ecarvalh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #ifndef CUB3D_H
 # define CUB3D_H
 
-# define CW 0xffffffff
-# define C0 0x00000000
+# include <X11/X.h>      // macros
+# include <X11/keysym.h> // macros _keyboard_
+# include <stdlib.h>     // malloc, free, size_t, exit, etc...
+# include <stdio.h>      // printf
+# include <sys/time.h>   // gettimeofday
+# include <errno.h>      // perror(3)
+# include <stdbool.h>    // bool type
+# include <unistd.h>     // read, write
 
-# define CR 0xffff0000
-# define CG 0xff00ff00
-# define CB 0xff0000ff
+# define __USE_MISC      // Math constants (M_PI)
+# include <math.h>       // (almost all of them)
 
-# define CM 0xffff00ff
-# define CY 0xffffff00
-# define CC 0xff00ffff
+# include "mlx.h"        // mlx_*
+# include "alloc.h"      // ft_calloc, ft_free, ft_clean // good stuff
 
-typedef unsigned int	t_color;
+/******************************************************************************/
 
-typedef struct s_v2	t_v2;
-struct s_v2
+enum e_events
 {
-	float	x;
-	float	y;
-};
-
-typedef struct s_list	t_list;
-struct s_list
-{
-	void	*ptr;
-	t_list	*next;
+	ON_KEYDOWN = 2,
+	ON_KEYUP = 3,
+	ON_MOUSEDOWN = 4,
+	ON_MOUSEUP = 5,
+	ON_MOUSEMOVE = 6,
+	ON_DESTROY = 17,
 };
 
 typedef struct s_img	t_img;
 struct s_img
 {
 	void	*ptr;
-	char	*buf;
 	int		width;
 	int		height;
+	char	*data;
 	int		bpp;
 	int		sl;
 	int		endian;
@@ -57,46 +57,90 @@ struct s_mlx
 {
 	void	*ptr;
 	void	*win;
-	t_img	frame;
-};
-
-typedef struct s_map	t_map;
-struct s_map
-{
-	int		*data;
-	size_t	width;
-	size_t	height;
+	int		width;
+	int		height;
+	char	*title;
 };
 
 typedef struct s_usr	t_usr;
 struct s_usr
 {
-	t_v2	pos;
-	t_v2	dir;
-	t_v2	plane;
+	float	posx;
+	float	posy;
+	float	dirx;
+	float	diry;
+	float	plx;
+	float	ply;
 };
 
-typedef struct s_time	t_time;
+typedef struct s_map	t_map;
+struct s_map
+{
+	int	*data;
+	int	width;
+	int	height;
+};
+
+typedef struct s_time	t_ime;
 struct s_time
 {
-	size_t	before;
-	size_t	now;
-	size_t	fps;
-	float	dt;
+	double	fps;
+	double	dt;
 };
 
-typedef struct s_global	t_global;
-struct	s_global
+typedef struct s_g		t_g;
+struct s_g
 {
 	t_mlx	mlx;
+	t_img	frame;
 	t_map	map;
 	t_usr	usr;
-	t_time	time;
+	t_ime	time;
+	int		argc;
+	char	**argv;
+	int		key_pressed[177];
+	int		exit_status;
 };
 
-// alloc.c
-void	*ft_calloc(size_t n, size_t s);
-void	ft_free(void *ptr);
-void	ft_clean(void);
+/******************************************************************************/
 
+// time.c
+size_t	time_now(void);
+void	time_update(void);
+
+// HERE
+t_g		*g(void);
+void	*_memmove(void *dest, const void *src, size_t n);
+
+/******************************************************************************/
+
+# ifdef CUB3D_IMPL
+
+t_g	*g(void)
+{
+	static t_g	g = {0};
+
+	return (&g);
+}
+
+void	*_memmove(void *dest, const void *src, size_t n)
+{
+	char		*d;
+	const char	*s = (char *)src;
+
+	if (!dest || !src)
+		return (NULL);
+	if (dest == src)
+		return (dest);
+	d = (char *)dest;
+	if (d < s)
+		while (n--)
+			*d++ = *s++;
+	else
+		while (n--)
+			d[n] = s[n];
+	return (dest);
+}
+
+# endif // CUB3D_IMPL
 #endif // CUB3D_H

@@ -6,125 +6,101 @@
 /*   By: ecarvalh <ecarvalh@student.42porto.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/24 14:54:28 by ecarvalh          #+#    #+#             */
-/*   Updated: 2024/10/10 00:35:03 by ecarvalh         ###   ########.fr       */
+/*   Updated: 2024/10/11 01:51:38 by ecarvalh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-//// Headers ///////////////////////////////////////////////////////////////////
-
-#include <X11/X.h>      // macros
-#include <X11/keysym.h> // macros _keyboard_
-#include <stdlib.h>     // malloc, free, size_t, exit, etc...
-#include <stdio.h>      // printf
-#include <sys/time.h>   // gettimeofday
-#include <errno.h>      // perror(3)
-#include <stdbool.h>    // bool type
-#define __USE_MISC
-#include <math.h>       // (almost all of them)
-#include "mlx.h"        // mlx_*
-
+#define CUB3D_IMPL
+#define ALLOC_IMPL
 #include "cub3d.h"
 
-t_global	*g(void)
+void	init_frame(void)
 {
-	static t_global	g;
+	t_mlx	*mlx;
+	t_img	*img;
 
-	return (&g);
+	mlx = &g()->mlx;
+	img = &g()->frame;
+	img->width = mlx->width;
+	img->height = mlx->height;
+	img->ptr = mlx_new_image(mlx->ptr, img->width, img->height);
+	img->data = mlx_get_data_addr(img->ptr, &img->bpp, &img->sl, &img->endian);
 }
 
-int	quit(void)
+void	init_window(void)
 {
-	auto t_mlx * mlx = &g()->mlx;
+	t_mlx	*mlx;
+
+	mlx = &g()->mlx;
+	mlx->width = 800;
+	mlx->height = 800;
+	mlx->title = "Cub3D";
+	mlx->win = mlx_new_window(mlx->ptr, mlx->width, mlx->height, mlx->title);
+}
+
+int	event_quit(void)
+{
+	t_mlx	*mlx;
+	t_img	*img;
+
+	mlx = &g()->mlx;
+	img = &g()->frame;
 	if (mlx->win)
 		mlx_destroy_window(mlx->ptr, mlx->win);
-	auto t_img * img = &mlx->frame;
 	if (img->ptr)
 		mlx_destroy_image(mlx->ptr, img->ptr);
 	if (mlx->ptr)
-	{
-		mlx_destroy_display(mlx->ptr);
 		free(mlx->ptr);
-	}
 	ft_clean();
-	exit(0);
+	exit(g()->exit_status);
 	return (0);
 }
 
-int	keyrelease(int key)
+int	event_keydown(int keycode)
 {
-	if (key == XK_Escape)
-		quit();
-	return (0);
-}
-
-int	mouse_move(int x, int y)
-{
-	t_usr	*usr;
-
-	usr = &g()->usr;
-	usr->pos.x = x;
-	usr->pos.y = y;
-	return (0);
-}
-
-size_t	time_now(void)
-{
-	struct timeval	tv;
-
-	if (gettimeofday(&tv, NULL) < 0)
+//	printf("keydown: ");
+	if (keycode <= 177)
 	{
-		perror("time_now - gettimeofday");
-		quit();
+		g()->key_pressed[keycode & 0xff] = 1;
+//		printf("(%c) ", keycode & 0xff);
 	}
-	return ((tv.tv_sec * 1000) + (tv.tv_usec / 1000));
+//	printf("%d\n", keycode);
+	return (0);
 }
 
-void	time_update(void)
+int	event_keyup(int keycode)
 {
-	auto t_time * time = &g()->time;
-	time->now = time_now();
-	time->dt = time->now - time->before;
-	if (time->dt > 0)
-		time->fps = 1000 / time->dt;
-	time->before = time->now;
+	if (keycode <= 177)
+		g()->key_pressed[keycode & 0xff] = 0;
+	if (keycode == 65307)
+		event_quit();
+	return (0);
 }
 
-void	put_pixel(int x, int y, t_color color)
+void	put_pixel(int x, int y, int color)
 {
-	auto t_img * img = &g()->mlx.frame;
+	t_img	*img;
+	char	*dst;
+
+	img = &g()->frame;
 	if (x >= 0 && x < img->width && y >= 0 && y < img->height)
 	{
-		auto char *dst = img->buf + (y * img->sl + x * (img->bpp / 8));
-		*(t_color *)dst = color;
+		dst = img->data + (y * img->sl + x * (img->bpp / 8));
+		*(int *)dst = color;
 	}
 }
 
-void	clear(t_color color)
-{
-	auto t_img * img = &g()->mlx.frame;
-	auto int x = -1;
-	while (++x < img->width)
-	{
-		auto int y = 0;
-		while (y < img->height)
-			put_pixel(x, y++, color);
-	}
-}
-
-void	ft_xorswapi(int *a, int *b)
-{
-	*a ^= *b;
-	*b ^= *a;
-	*a ^= *b;
-}
-
-void	draw_verline(int x, int ystart, int yend, t_color color)
+void	draw_vertical_line(int x, int ystart, int yend, int color)
 {
 	t_img	*win;
 
-	win = &g()->mlx.frame;
+	win = &g()->frame;
 	if (ystart > yend)
-		ft_xorswapi(&ystart, &yend);
+	{
+		ystart ^= yend;
+		yend ^= ystart;
+		ystart ^= yend;
+	}
 	if (ystart < 0)
 		ystart = 0;
 	else if (ystart >= win->height)
@@ -137,304 +113,141 @@ void	draw_verline(int x, int ystart, int yend, t_color color)
 		put_pixel(x, ystart++, color);
 }
 
-void	draw_hozline(int y, int xstart, int xend, t_color color)
+int	get_map_value(int x, int y)
 {
-	t_img	*win;
-
-	win = &g()->mlx.frame;
-	if (xstart > xend)
-		ft_xorswapi(&xstart, &xend);
-	if (xstart < 0)
-		xstart = 0;
-	else if (xstart >= win->width)
-		xstart = win->width;
-	if (xend < 0)
-		xend = 0;
-	else if (xend >= win->width)
-		xend = win->width;
-	while (xstart < xend)
-		put_pixel(xstart++, y, color);
+	if (x < 0 || x > g()->map.width || y < 0 || y > g()->map.height)
+		return (1);
+	return (g()->map.data[y * g()->map.width + y]);
 }
 
-void	draw_circle(int x, int y, int radius, t_color color)
-{
-	for (int rad = radius; rad >= 0; rad--)
-	{
-		for (double i = 0; i <= M_PI * 2; i+=0.01)
-		{
-			int px = x + rad * cos(i);
-			int py = y + rad * sin(i);
-			put_pixel(px, py, color);
+void perform_raycast(int screenHeight) {
+	for (int x = 0; x < g()->frame.width; x++) {
+		double cameraX = 2 * x / (double)g()->frame.width - 1;
+		double rayDirX = g()->usr.dirx + g()->usr.plx * cameraX;
+		double rayDirY = g()->usr.diry + g()->usr.ply * cameraX;
+		int mapX = (int)g()->usr.posx;
+		int mapY = (int)g()->usr.posy;
+		double deltaDistX = fabs(1 / rayDirX);
+		double deltaDistY = fabs(1 / rayDirY);
+		int stepX, stepY;
+		double sideDistX, sideDistY;
+		if (rayDirX < 0) {
+			stepX = -1;
+			sideDistX = (g()->usr.posx - mapX) * deltaDistX;
+		} else {
+			stepX = 1;
+			sideDistX = (mapX + 1.0 - g()->usr.posx) * deltaDistX;
 		}
-	}
-}
-
-void	draw_rect(int x, int y, int width, int height, t_color color)
-{
-	int	tx;
-	int	ty;
-
-	tx = x;
-	ty = y;
-	while (ty < height)
-	{
-		while (tx < width)
-		{
-			put_pixel(tx, ty, color);
-			tx++;
+		if (rayDirY < 0) {
+			stepY = -1;
+			sideDistY = (g()->usr.posy - mapY) * deltaDistY;
+		} else {
+			stepY = 1;
+			sideDistY = (mapY + 1.0 - g()->usr.posy) * deltaDistY;
 		}
-		tx = x;
-		ty++;
-	}
-}
-
-int	min(int a, int b)
-{
-	if (a < b)
-		return (a);
-	return (b);
-}
-
-int	max(int a, int b)
-{
-	if (a > b)
-		return (a);
-	return (b);
-}
-
-t_v2	v2_add(t_v2 a, t_v2 b)
-{
-	t_v2	res;
-
-	res.x = a.x + b.x;
-	res.y = a.y + b.y;
-	return (res);
-}
-
-t_v2	v2_sub(t_v2 a, t_v2 b)
-{
-	t_v2	res;
-
-	res.x = a.x - b.x;
-	res.y = a.y - b.y;
-	return (res);
-}
-
-t_v2	v2_mul(t_v2 a, t_v2 b)
-{
-	t_v2	res;
-
-	res.x = a.x * b.x;
-	res.y = a.y * b.y;
-	return (res);
-}
-
-t_v2	v2_div(t_v2 a, t_v2 b)
-{
-	t_v2	res;
-
-	res.x = a.x / b.x;
-	res.y = a.y / b.y;
-	return (res);
-}
-
-float	v2_len(t_v2 a)
-{
-	return (sqrt(a.x * a.x + a.y * a.y));
-}
-
-t_v2	v2_norm(t_v2 a)
-{
-	const float	len = v2_len(a);
-	t_v2		res;
-
-	res.x = 0;
-	res.y = 0;
-	if (len == 0)
-		return (res);
-	res.x = a.x / len;
-	res.y = a.y / len;
-	return (res);
-}
-
-t_v2	v2_scale(t_v2 a, float val)
-{
-	t_v2	res;
-	
-	res.x = a.x * val;
-	res.y = a.y * val;
-	return (res);
-}
-
-float	v2_dist(t_v2 a, t_v2 b)
-{
-	return (v2_len(v2_sub(a, b)));
-}
-
-// snap X to grid based on delta X
-float	v2_snap(float x, float dx)
-{
-	if (dx > 0)
-		return (ceil(x));
-	if (dx < 0)
-		return (floor(x));
-	return (x);
-}
-
-t_v2	ray_step(t_v2 a, t_v2 b)
-{
-	(void)a;
-	return (b);
-}
-
-t_v2	v2_window_size()
-{
-	t_img	*window;
-	t_v2	res;
-
-	window = &g()->mlx.frame;
-	res.x = (float)window->width;
-	res.y = (float)window->height;
-	return (res);
-}
-
-void	draw_grid(float x, float y, float sz)
-{
-	t_map	*map;
-	t_color	color;
-	int		data;
-
-	map = &g()->map;
-	for (size_t i = 0; i <= map->width; i++)
-	{
-		for (size_t j = 0; j <= map->height; j++)
-		{
-			color = 0;
-			draw_verline(x + i * sz, y + j, y + j * sz, CW);
-			draw_hozline(y + j * sz, x + i, x + i * sz, CW);
-			if (i < map->width && j < map->height)
-			{
-				data = map->data[j * map->width + i];
-				if (data == 1)
-					color = CW;
-				else if (data == 2)
-					color = CR;
-				else if (data == 3)
-					color = CM;
-				else if (data == 4)
-					color = CC;
-				if (data)
-					draw_rect(x + i * sz,  y + j * sz, x + i * sz + sz, y + j * sz + sz, color);
+		int hit = 0;
+		int side;
+		while (hit == 0) {
+			if (sideDistX < sideDistY) {
+				sideDistX += deltaDistX;
+				mapX += stepX;
+				side = 0;
+			} else {
+				sideDistY += deltaDistY;
+				mapY += stepY;
+				side = 1;
 			}
+			if (get_map_value(mapX, mapY) > 0) hit = 1;
+		}
+		double perpWallDist;
+		if (side == 0) perpWallDist = (mapX - g()->usr.posx + (1 - stepX) / 2) / rayDirX;
+		else perpWallDist = (mapY - g()->usr.posy + (1 - stepY) / 2) / rayDirY;
+		int lineHeight = (int)(screenHeight / perpWallDist);
+		int drawStart = -lineHeight / 2 + screenHeight / 2;
+		if (drawStart < 0) drawStart = 0;
+		int drawEnd = lineHeight / 2 + screenHeight / 2;
+		if (drawEnd >= screenHeight) drawEnd = screenHeight - 1;
+		if (side == 0) {
+			draw_vertical_line(x, 0, drawStart, 0);
+			draw_vertical_line(x, drawStart, drawEnd, 0xFFFFFF);
+			draw_vertical_line(x, drawEnd, screenHeight, 0);
+		} else {
+			draw_vertical_line(x, 0, drawStart, 0);
+			draw_vertical_line(x, drawStart, drawEnd, 0xAAAAAA);
+			draw_vertical_line(x, drawEnd, screenHeight, 0);
 		}
 	}
+	mlx_put_image_to_window(g()->mlx.ptr, g()->mlx.win, g()->frame.ptr, 0, 0);
 }
 
 int	loop(void)
 {
-	t_mlx	*mlx;
-	t_img	*img;
-	t_usr	*usr;
-
+	float ver_dir = g()->key_pressed['w'] - g()->key_pressed['s'];
+	float rot_dir = g()->key_pressed['e'] - g()->key_pressed['q'];
 	time_update();
-	mlx = &g()->mlx;
-	img = &mlx->frame;
-	usr = &g()->usr;
-	draw_circle(usr->pos.x, usr->pos.y, 10, CW);
-	draw_grid(10, 10, 80);
-	//draw_circle(10 + usr->pos.x * 80, 10 + usr->pos.y * 80, 10, CW);
-	mlx_put_image_to_window(mlx->ptr, mlx->win, img->ptr, 0, 0);
+	printf("FPS: %f\n", g()->time.fps);
+	perform_raycast(800);
+	g()->usr.posx += ver_dir * 1.4 * g()->usr.dirx * g()->time.dt;
+	g()->usr.posy += ver_dir * 1.4 * g()->usr.diry * g()->time.dt;
+	float rotvel = rot_dir * g()->time.dt;
+	float odx = g()->usr.dirx;
+	g()->usr.dirx = odx * cos(rotvel) - g()->usr.diry * sin(rotvel);
+	g()->usr.diry = odx * sin(rotvel) + g()->usr.diry * cos(rotvel);
+	float opx = g()->usr.plx;
+	g()->usr.plx = opx * cos(rotvel) - g()->usr.ply * sin(rotvel);
+	g()->usr.ply = opx * sin(rotvel) + g()->usr.ply * cos(rotvel);
 	return (0);
 }
 
-void	*ft_memmove(void *dest, const void *src, size_t n)
+int	init_map_tmp(void)
 {
-	char		*d;
-	const char	*s;
-
-	if (!dest || !src)
-		return (NULL);
-	if (dest == src)
-		return (dest);
-	d = (char *)dest;
-	s = (char *)src;
-	if (d < s)
-	{
-		while (n--)
-			*d++ = *s++;
-	}
-	else
-	{
-		while (n--)
-			d[n] = s[n];
-	}
-	return (dest);
-}
-
-void	init_map_tmp(void)
-{
-	auto t_time * time = &g()->time;
-	auto t_map * map = &g()->map;
-	time->before = time_now();
-	auto int map_width = 8;
-	auto int map_data[] = {
+	const int		size = 8;
+	const int		map_tmp[] = {
 		1, 1, 1, 1, 1, 1, 1, 1,
 		1, 0, 0, 0, 0, 0, 0, 1,
 		1, 0, 0, 0, 0, 0, 0, 1,
-		1, 0, 0, 2, 3, 0, 0, 1,
-		1, 0, 0, 4, 2, 0, 0, 1,
 		1, 0, 0, 0, 0, 0, 0, 1,
 		1, 0, 0, 0, 0, 0, 0, 1,
-		1, 1, 1, 1, 1, 1, 1, 1,
-	};
-	auto int map_size = sizeof(map_data) / sizeof(int);
-	map->data = ft_calloc(map_size, sizeof(int));
-	map->width = map_width;
-	map->height = map_width;
-	if (!map->data)
-		quit();
-	ft_memmove(map->data, map_data, map_size * sizeof(int));
-	for (size_t x = 0; x < map->width; x++)
-	{
-		for (size_t y = 0; y < map->height; y++)
-		{
-			printf("%d ", map->data[y * map_width + x]);
-		}
-		printf("\n");
-	}
+		1, 0, 0, 0, 0, 0, 0, 1,
+		1, 0, 0, 0, 0, 0, 0, 1,
+		1, 1, 1, 1, 1, 1, 1, 1};
+	const size_t	map_size = sizeof(map_tmp) / sizeof(int);
+	int *const		map_data = ft_calloc(map_size, sizeof(int));
+
+	if (!map_data)
+		return (0);
+	g()->map.data = map_data;
+	g()->map.width = size;
+	g()->map.height = size;
+	g()->usr.posx = 5.5;
+	g()->usr.posy = 5.5;
+	g()->usr.dirx = 1.0;
+	g()->usr.ply = 0.66;
+	_memmove(g()->map.data, map_tmp, sizeof(map_tmp));
+	return (1);
 }
 
-void	init_usr_tmp(void)
+// mlx_do_key_autorepeatoff(mlx->ptr); //> TODO: test it later
+int	main(int argc, char **argv)
 {
-	auto t_usr * usr = &g()->usr;
-	usr->pos = (t_v2){6.5, 6.5};
-	usr->dir = (t_v2){-1, 0};
-	// usr->plane = (t_v2){0, 0.66};
-}
+	t_mlx	*mlx;
 
-void	init(void)
-{
-	init_usr_tmp();
-	init_map_tmp();
-	auto t_mlx * mlx = &g()->mlx;
-	auto t_img * img = &mlx->frame;
-	img->width = 800;
-	img->height = 800;
+	g()->argc = argc;
+	g()->argv = argv;
+	if (!init_map_tmp())
+		return (write(2, "Error: Could not initialize Map!\n", 33), 1);
+	mlx = &g()->mlx;
 	mlx->ptr = mlx_init();
-	mlx->win = mlx_new_window(mlx->ptr, img->width, img->height, "");
-	img->ptr = mlx_new_image(mlx->ptr, img->width, img->height);
-	if (!mlx->ptr || !mlx->win || !img->ptr)
-		quit();
-	img->buf = mlx_get_data_addr(img->ptr, &img->bpp, &img->sl, &img->endian);
-	mlx_hook(mlx->win, KeyRelease, KeyReleaseMask, keyrelease, NULL);
-	mlx_hook(mlx->win, DestroyNotify, StructureNotifyMask, quit, NULL);
-	mlx_hook(mlx->win, MotionNotify, PointerMotionMask, mouse_move, NULL);
+	if (!mlx->ptr)
+		return (write(2, "Error: Could not initialize MLX!\n", 33), 1);
+	init_window();
+	init_frame();
+	if (!mlx->win || !g()->frame.ptr)
+		return (write(2, "Error: Could not initialize window!\n", 36), 1);
+	mlx_hook(mlx->win, ON_DESTROY, 0, event_quit, NULL);
+	mlx_hook(mlx->win, ON_KEYDOWN, 1, event_keydown, NULL);
+	mlx_hook(mlx->win, ON_KEYUP, 2, event_keyup, NULL);
 	mlx_loop_hook(mlx->ptr, loop, NULL);
 	mlx_loop(mlx->ptr);
-}
-
-int	main(void)
-{
-	init();
 	return (0);
 }

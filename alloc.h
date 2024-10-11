@@ -1,17 +1,19 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   alloc.c                                            :+:      :+:    :+:   */
+/*   alloc.h                                            :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: ecarvalh <ecarvalh@student.42porto.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/01 16:02:23 by ecarvalh          #+#    #+#             */
-/*   Updated: 2024/10/01 17:23:37 by ecarvalh         ###   ########.fr       */
+/*   Updated: 2024/10/11 00:11:04 by ecarvalh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include <stdlib.h>
-#include "cub3d.h"
+#ifndef ALLOC_H
+# define ALLOC_H
+
+# include <stdlib.h>
 
 /*
  * The custom allocator for this project was created for preventing memory
@@ -27,50 +29,62 @@ void	*ft_calloc(size_t n, size_t s);
 void	ft_free(void *ptr);
 void	ft_clean(void);
 
-static t_list	**ft_get_alloc(void)
+typedef struct s__lst	t__lst;
+struct s__lst
 {
-	static t_list	*alloc;
+	void	*ptr;
+	t__lst	*next;
+};
+
+# ifdef ALLOC_IMPL
+
+static t__lst	**ft_get_alloc(void)
+{
+	static t__lst	*alloc = NULL;
 
 	return (&alloc);
 }
 
 void	*ft_calloc(size_t num, size_t size)
 {
-	auto void *ptr = malloc(num * size);
-	if (ptr)
-	{
-		auto t_list **root = ft_get_alloc();
-		auto size_t i = num * size;
-		while (i && i--)
-			((char *)ptr)[i] = 0;
-		auto t_list * new_node = (t_list *)malloc(sizeof(t_list));
-		if (new_node)
-		{
-			new_node->ptr = ptr;
-			new_node->next = *root;
-			*root = new_node;
-		}
-		else
-			return (free(ptr), NULL);
-	}
+	void *const		ptr = malloc(num * size);
+	size_t			i;
+	t__lst **const	root = ft_get_alloc();
+	t__lst			*new_node;
+
+	if (!ptr)
+		return (NULL);
+	i = num * size;
+	while (i && i--)
+		((char *)ptr)[i] = 0;
+	new_node = (t__lst *)malloc(sizeof(t__lst));
+	if (!new_node)
+		return (free(ptr), NULL);
+	new_node->ptr = ptr;
+	new_node->next = *root;
+	*root = new_node;
 	return (ptr);
 }
 
 void	ft_free(void *ptr)
 {
-	auto t_list **node = ft_get_alloc();
-	auto t_list * prev = NULL;
+	t__lst	**node;
+	t__lst	*prev;
+	t__lst	*del;
+
+	node = ft_get_alloc();
+	prev = NULL;
 	while (*node)
 	{
 		if ((*node)->ptr == ptr)
 		{
-			auto t_list * to_free = *node;
+			del = *node;
 			if (prev)
 				prev->next = (*node)->next;
 			else
 				*node = (*node)->next;
-			free(to_free->ptr);
-			free(to_free);
+			free(del->ptr);
+			free(del);
 			return ;
 		}
 		prev = *node;
@@ -80,12 +94,19 @@ void	ft_free(void *ptr)
 
 void	ft_clean(void)
 {
-	auto t_list **node = ft_get_alloc();
+	t__lst	**node;
+	t__lst	*del;
+
+	node = ft_get_alloc();
+	del = NULL;
 	while (*node)
 	{
-		auto t_list * to_free = *node;
+		del = *node;
 		*node = (*node)->next;
-		free(to_free->ptr);
-		free(to_free);
+		free(del->ptr);
+		free(del);
 	}
 }
+
+# endif // ALLOC_IMPL
+#endif // ALLOC_H
