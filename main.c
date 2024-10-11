@@ -6,7 +6,7 @@
 /*   By: ecarvalh <ecarvalh@student.42porto.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/24 14:54:28 by ecarvalh          #+#    #+#             */
-/*   Updated: 2024/10/11 01:51:38 by ecarvalh         ###   ########.fr       */
+/*   Updated: 2024/10/11 12:55:45 by ecarvalh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -116,8 +116,8 @@ void	draw_vertical_line(int x, int ystart, int yend, int color)
 int	get_map_value(int x, int y)
 {
 	if (x < 0 || x > g()->map.width || y < 0 || y > g()->map.height)
-		return (1);
-	return (g()->map.data[y * g()->map.width + y]);
+		return (-1);
+	return (g()->map.data[y * g()->map.width + x]);
 }
 
 void perform_raycast(int screenHeight) {
@@ -157,7 +157,9 @@ void perform_raycast(int screenHeight) {
 				mapY += stepY;
 				side = 1;
 			}
+
 			if (get_map_value(mapX, mapY) > 0) hit = 1;
+			else if (get_map_value(mapX, mapY) < 0) break;
 		}
 		double perpWallDist;
 		if (side == 0) perpWallDist = (mapX - g()->usr.posx + (1 - stepX) / 2) / rayDirX;
@@ -187,9 +189,9 @@ int	loop(void)
 	time_update();
 	printf("FPS: %f\n", g()->time.fps);
 	perform_raycast(800);
-	g()->usr.posx += ver_dir * 1.4 * g()->usr.dirx * g()->time.dt;
-	g()->usr.posy += ver_dir * 1.4 * g()->usr.diry * g()->time.dt;
-	float rotvel = rot_dir * g()->time.dt;
+	g()->usr.posx += ver_dir * 3 * g()->usr.dirx * g()->time.dt;
+	g()->usr.posy += ver_dir * 3 * g()->usr.diry * g()->time.dt;
+	float rotvel = rot_dir * 3 * g()->time.dt;
 	float odx = g()->usr.dirx;
 	g()->usr.dirx = odx * cos(rotvel) - g()->usr.diry * sin(rotvel);
 	g()->usr.diry = odx * sin(rotvel) + g()->usr.diry * cos(rotvel);
@@ -205,10 +207,10 @@ int	init_map_tmp(void)
 	const int		map_tmp[] = {
 		1, 1, 1, 1, 1, 1, 1, 1,
 		1, 0, 0, 0, 0, 0, 0, 1,
-		1, 0, 0, 0, 0, 0, 0, 1,
-		1, 0, 0, 0, 0, 0, 0, 1,
-		1, 0, 0, 0, 0, 0, 0, 1,
-		1, 0, 0, 0, 0, 0, 0, 1,
+		1, 0, 0, 0, 1, 0, 0, 1,
+		1, 0, 0, 1, 1, 1, 0, 1,
+		1, 0, 0, 1, 0, 0, 0, 1,
+		1, 0, 0, 1, 0, 0, 0, 1,
 		1, 0, 0, 0, 0, 0, 0, 1,
 		1, 1, 1, 1, 1, 1, 1, 1};
 	const size_t	map_size = sizeof(map_tmp) / sizeof(int);
