@@ -6,7 +6,7 @@
 /*   By: ecarvalh <ecarvalh@student.42porto.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/24 14:54:28 by ecarvalh          #+#    #+#             */
-/*   Updated: 2024/10/11 12:55:45 by ecarvalh         ###   ########.fr       */
+/*   Updated: 2024/10/13 21:15:38 by ecarvalh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,7 +33,7 @@ void	init_window(void)
 
 	mlx = &g()->mlx;
 	mlx->width = 800;
-	mlx->height = 800;
+	mlx->height = 500;
 	mlx->title = "Cub3D";
 	mlx->win = mlx_new_window(mlx->ptr, mlx->width, mlx->height, mlx->title);
 }
@@ -58,13 +58,16 @@ int	event_quit(void)
 
 int	event_keydown(int keycode)
 {
-//	printf("keydown: ");
+	if (g()->debug)
+		printf("keydown: ");
 	if (keycode <= 177)
 	{
 		g()->key_pressed[keycode & 0xff] = 1;
-//		printf("(%c) ", keycode & 0xff);
+		if (g()->debug)
+			printf("(%c) ", keycode & 0xff);
 	}
-//	printf("%d\n", keycode);
+	if (g()->debug)
+		printf("%d\n", keycode);
 	return (0);
 }
 
@@ -120,17 +123,17 @@ int	get_map_value(int x, int y)
 	return (g()->map.data[y * g()->map.width + x]);
 }
 
-void perform_raycast(int screenHeight) {
+void perform_raycast(void) {
 	for (int x = 0; x < g()->frame.width; x++) {
-		double cameraX = 2 * x / (double)g()->frame.width - 1;
-		double rayDirX = g()->usr.dirx + g()->usr.plx * cameraX;
-		double rayDirY = g()->usr.diry + g()->usr.ply * cameraX;
+		float cameraX = 2 * x / (float)g()->frame.width - 1;
+		float rayDirX = g()->usr.dirx + g()->usr.plx * cameraX;
+		float rayDirY = g()->usr.diry + g()->usr.ply * cameraX;
 		int mapX = (int)g()->usr.posx;
 		int mapY = (int)g()->usr.posy;
-		double deltaDistX = fabs(1 / rayDirX);
-		double deltaDistY = fabs(1 / rayDirY);
+		float deltaDistX = fabs(1 / rayDirX);
+		float deltaDistY = fabs(1 / rayDirY);
 		int stepX, stepY;
-		double sideDistX, sideDistY;
+		float sideDistX, sideDistY;
 		if (rayDirX < 0) {
 			stepX = -1;
 			sideDistX = (g()->usr.posx - mapX) * deltaDistX;
@@ -157,26 +160,25 @@ void perform_raycast(int screenHeight) {
 				mapY += stepY;
 				side = 1;
 			}
-
 			if (get_map_value(mapX, mapY) > 0) hit = 1;
 			else if (get_map_value(mapX, mapY) < 0) break;
 		}
-		double perpWallDist;
+		float perpWallDist;
 		if (side == 0) perpWallDist = (mapX - g()->usr.posx + (1 - stepX) / 2) / rayDirX;
 		else perpWallDist = (mapY - g()->usr.posy + (1 - stepY) / 2) / rayDirY;
-		int lineHeight = (int)(screenHeight / perpWallDist);
-		int drawStart = -lineHeight / 2 + screenHeight / 2;
+		int lineHeight = (int)(g()->frame.height / perpWallDist);
+		int drawStart = -lineHeight / 2 + g()->frame.height / 2;
 		if (drawStart < 0) drawStart = 0;
-		int drawEnd = lineHeight / 2 + screenHeight / 2;
-		if (drawEnd >= screenHeight) drawEnd = screenHeight - 1;
+		int drawEnd = lineHeight / 2 + g()->frame.height / 2;
+		if (drawEnd >= g()->frame.height) drawEnd = g()->frame.height - 1;
 		if (side == 0) {
 			draw_vertical_line(x, 0, drawStart, 0);
 			draw_vertical_line(x, drawStart, drawEnd, 0xFFFFFF);
-			draw_vertical_line(x, drawEnd, screenHeight, 0);
+			draw_vertical_line(x, drawEnd, g()->frame.height, 0);
 		} else {
 			draw_vertical_line(x, 0, drawStart, 0);
 			draw_vertical_line(x, drawStart, drawEnd, 0xAAAAAA);
-			draw_vertical_line(x, drawEnd, screenHeight, 0);
+			draw_vertical_line(x, drawEnd, g()->frame.height, 0);
 		}
 	}
 	mlx_put_image_to_window(g()->mlx.ptr, g()->mlx.win, g()->frame.ptr, 0, 0);
@@ -187,8 +189,9 @@ int	loop(void)
 	float ver_dir = g()->key_pressed['w'] - g()->key_pressed['s'];
 	float rot_dir = g()->key_pressed['e'] - g()->key_pressed['q'];
 	time_update();
-	printf("FPS: %f\n", g()->time.fps);
-	perform_raycast(800);
+	if (g()->debug)
+		printf("FPS: %f\n", g()->time.fps);
+	perform_raycast();
 	g()->usr.posx += ver_dir * 3 * g()->usr.dirx * g()->time.dt;
 	g()->usr.posy += ver_dir * 3 * g()->usr.diry * g()->time.dt;
 	float rotvel = rot_dir * 3 * g()->time.dt;
@@ -236,6 +239,7 @@ int	main(int argc, char **argv)
 
 	g()->argc = argc;
 	g()->argv = argv;
+	g()->debug = 1;
 	if (!init_map_tmp())
 		return (write(2, "Error: Could not initialize Map!\n", 33), 1);
 	mlx = &g()->mlx;

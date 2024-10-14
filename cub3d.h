@@ -6,7 +6,7 @@
 /*   By: ecarvalh <ecarvalh@student.42porto.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/01 16:10:01 by ecarvalh          #+#    #+#             */
-/*   Updated: 2024/10/11 01:47:23 by ecarvalh         ###   ########.fr       */
+/*   Updated: 2024/10/13 21:03:14 by ecarvalh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -84,8 +84,8 @@ struct s_map
 typedef struct s_time	t_ime;
 struct s_time
 {
-	double	fps;
-	double	dt;
+	float	fps;
+	float	dt;
 };
 
 typedef struct s_g		t_g;
@@ -100,6 +100,25 @@ struct s_g
 	char	**argv;
 	int		key_pressed[177];
 	int		exit_status;
+	int		debug;
+};
+
+typedef struct s_dda	t_dda;
+struct s_dda
+{
+	float	rdx;
+	float	rdy;
+	float	ddx;
+	float	ddy;
+	float	sdx;
+	float	sdy;
+	int		mx;
+	int		my;
+	int		sx;
+	int		sy;
+	int		hit;
+	int		side;
+	int		walldist;
 };
 
 /******************************************************************************/
