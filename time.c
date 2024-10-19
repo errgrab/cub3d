@@ -6,7 +6,7 @@
 /*   By: ecarvalh <ecarvalh@student.42porto.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/10 23:57:09 by ecarvalh          #+#    #+#             */
-/*   Updated: 2024/10/11 01:48:55 by ecarvalh         ###   ########.fr       */
+/*   Updated: 2024/10/19 16:34:46 by ecarvalh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,7 +19,7 @@ void	time_update(void)
 {
 	static struct timeval	now = {0};
 	static struct timeval	before = {0};
-	t_ime	*time;
+	t_ime					*time;
 
 	time = &g()->time;
 	if (gettimeofday(&now, NULL) < 0)

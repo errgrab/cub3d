@@ -6,27 +6,29 @@
 /*   By: ecarvalh <ecarvalh@student.42porto.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/01 16:10:01 by ecarvalh          #+#    #+#             */
-/*   Updated: 2024/10/13 21:03:14 by ecarvalh         ###   ########.fr       */
+/*   Updated: 2024/10/19 18:32:38 by ecarvalh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #ifndef CUB3D_H
 # define CUB3D_H
 
-# include <X11/X.h>      // macros
-# include <X11/keysym.h> // macros _keyboard_
 # include <stdlib.h>     // malloc, free, size_t, exit, etc...
 # include <stdio.h>      // printf
 # include <sys/time.h>   // gettimeofday
-# include <errno.h>      // perror(3)
-# include <stdbool.h>    // bool type
 # include <unistd.h>     // read, write
 
 # define __USE_MISC      // Math constants (M_PI)
 # include <math.h>       // (almost all of them)
 
 # include "mlx.h"        // mlx_*
-# include "alloc.h"      // ft_calloc, ft_free, ft_clean // good stuff
+# include "ft_alloc.h"   // ft_calloc, ft_free, ft_clean // good stuff
+
+# define RIGHT_ARROW 65363
+# define LEFT_ARROW 65361
+
+# define SPEED 3
+# define ROT_SPEED 3
 
 /******************************************************************************/
 
@@ -76,9 +78,15 @@ struct s_usr
 typedef struct s_map	t_map;
 struct s_map
 {
-	int	*data;
-	int	width;
-	int	height;
+	int		*data;
+	int		width;
+	int		height;
+	int		ceil_color;
+	int		floor_color;
+	t_img	north;
+	t_img	south;
+	t_img	east;
+	t_img	west;
 };
 
 typedef struct s_time	t_ime;
@@ -112,54 +120,53 @@ struct s_dda
 	float	ddy;
 	float	sdx;
 	float	sdy;
+	float	wdist;
 	int		mx;
 	int		my;
 	int		sx;
 	int		sy;
 	int		hit;
+	int		htry;
 	int		side;
-	int		walldist;
 };
 
 /******************************************************************************/
+
+// main.c
+int		get_map_value(int x, int y);
 
 // time.c
 size_t	time_now(void);
 void	time_update(void);
 
-// HERE
+// global.c
 t_g		*g(void);
-void	*_memmove(void *dest, const void *src, size_t n);
 
-/******************************************************************************/
+// init.c
+void	init_frame(void);
+void	init_window(void);
+int		init_map_tmp(void);
 
-# ifdef CUB3D_IMPL
+// event.c
+int		event_quit(void);
+int		event_keydown(int keycode);
+int		event_keyup(int keycode);
 
-t_g	*g(void)
-{
-	static t_g	g = {0};
+// raycast.c
+t_dda	raycast_start(int x);
+void	raycast_hit(t_dda *dda);
+void	raycast_draw(int x, t_dda *dda);
+void	raycast(void);
 
-	return (&g);
-}
+// action.c
+void	rotate(float speed);
+void	move(float speed);
 
-void	*_memmove(void *dest, const void *src, size_t n)
-{
-	char		*d;
-	const char	*s = (char *)src;
+// draw.c
+void	put_pixel(int x, int y, int color);
+void	draw_vertical_line(int x, int ystart, int yend, int color);
 
-	if (!dest || !src)
-		return (NULL);
-	if (dest == src)
-		return (dest);
-	d = (char *)dest;
-	if (d < s)
-		while (n--)
-			*d++ = *s++;
-	else
-		while (n--)
-			d[n] = s[n];
-	return (dest);
-}
+// ft_memmove.c
+void	*ft_memmove(void *dest, const void *src, size_t n);
 
-# endif // CUB3D_IMPL
 #endif // CUB3D_H
