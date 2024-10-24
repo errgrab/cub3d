@@ -6,7 +6,7 @@
 /*   By: ecarvalh <ecarvalh@student.42porto.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/19 18:27:15 by ecarvalh          #+#    #+#             */
-/*   Updated: 2024/10/19 18:28:46 by ecarvalh         ###   ########.fr       */
+/*   Updated: 2024/10/24 17:21:08 by ecarvalh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,6 +16,24 @@ t_dda	raycast_start(int x);
 void	raycast_hit(t_dda *dda);
 void	raycast_draw(int x, t_dda *dda);
 void	raycast(void);
+
+int	raycast_calctx(t_dda *dda, t_img *img)
+{
+	double	wx;
+	int		tx;
+
+	if (dda->side == 0)
+		wx = g()->usr.posy + dda->wdist * dda->rdy;
+	else
+		wx = g()->usr.posx + dda->wdist * dda->rdx;
+	wx -= floor(wx);
+	tx = (int)(wx * (double)img->width);
+	if (dda->side == 0 && dda->rdx > 0)
+		tx = img->width - tx - 1;
+	if (dda->side == 1 && dda->rdx < 0)
+		tx = img->width - tx - 1;
+	return (tx);
+}
 
 t_dda	raycast_start(int x)
 {

@@ -6,7 +6,7 @@
 /*   By: ecarvalh <ecarvalh@student.42porto.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/01 16:10:01 by ecarvalh          #+#    #+#             */
-/*   Updated: 2024/10/19 18:32:38 by ecarvalh         ###   ########.fr       */
+/*   Updated: 2024/10/24 16:42:33 by ecarvalh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -168,5 +168,6 @@ void	draw_vertical_line(int x, int ystart, int yend, int color);
 
 // ft_memmove.c
 void	*ft_memmove(void *dest, const void *src, size_t n);
+char	*ft_strstr(const char *s1, const char *s2);
 
 #endif // CUB3D_H
