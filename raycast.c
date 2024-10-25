@@ -6,7 +6,7 @@
 /*   By: ecarvalh <ecarvalh@student.42porto.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/19 18:27:15 by ecarvalh          #+#    #+#             */
-/*   Updated: 2024/10/25 12:19:16 by ecarvalh         ###   ########.fr       */
+/*   Updated: 2024/10/25 14:54:43 by ecarvalh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,9 +28,7 @@ int	raycast_calctx(t_dda *dda, t_img *img)
 		wx = g()->usr.posx + dda->wdist * dda->rdx;
 	wx -= floor(wx);
 	tx = (int)(wx * (double)img->width);
-	if (dda->side == 0 && dda->rdx > 0)
-		tx = img->width - tx - 1;
-	if (dda->side == 1 && dda->rdx < 0)
+	if ((dda->side == 0 && dda->rdx < 0) || (dda->side == 1 && dda->rdy > 0))
 		tx = img->width - tx - 1;
 	return (tx);
 }

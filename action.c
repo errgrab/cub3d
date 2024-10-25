@@ -6,7 +6,7 @@
 /*   By: ecarvalh <ecarvalh@student.42porto.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/19 18:29:51 by ecarvalh          #+#    #+#             */
-/*   Updated: 2024/10/19 18:33:28 by ecarvalh         ###   ########.fr       */
+/*   Updated: 2024/10/25 14:57:34 by ecarvalh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,7 +17,8 @@ void	move(float speed);
 
 void	rotate(float speed)
 {
-	const float	rot_dir = g()->key_pressed[15] - g()->key_pressed[14];
+	const float	rot_dir = (g()->key_pressed[15] || g()->key_pressed['l'])
+		- (g()->key_pressed[14] || g()->key_pressed['j']);
 	const float	rotvel = rot_dir * speed * g()->time.dt;
 	const float	odx = g()->usr.dirx;
 	const float	opx = g()->usr.plx;
