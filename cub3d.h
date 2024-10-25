@@ -6,7 +6,7 @@
 /*   By: ecarvalh <ecarvalh@student.42porto.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/01 16:10:01 by ecarvalh          #+#    #+#             */
-/*   Updated: 2024/10/25 12:15:14 by ecarvalh         ###   ########.fr       */
+/*   Updated: 2024/10/25 15:21:35 by ecarvalh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -167,6 +167,7 @@ void	move(float speed);
 // draw.c
 void	put_pixel(int x, int y, int color);
 void	draw_vertical_line(int x, int ystart, int yend, int color);
+int		darken_color(int color, float factor);
 
 // ft_memmove.c
 void	*ft_memmove(void *dest, const void *src, size_t n);
