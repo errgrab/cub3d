@@ -6,7 +6,7 @@
 /*   By: ecarvalh <ecarvalh@student.42porto.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/19 18:27:15 by ecarvalh          #+#    #+#             */
-/*   Updated: 2024/10/25 15:26:33 by ecarvalh         ###   ########.fr       */
+/*   Updated: 2024/10/25 18:05:08 by ecarvalh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -97,24 +97,19 @@ void	raycast_draw(t_dda *dda, t_img *img)
 	int	color;
 
 	lheight = (int)(g()->frame.height / dda->wdist);
-	dda->dstart = -lheight / 2 + g()->frame.height / 2;
-	dda->dend = lheight / 2 + g()->frame.height / 2;
-	if (dda->dstart < 0)
-		dda->dstart = 0;
-	if (dda->dend >= g()->frame.height)
-		dda->dend = g()->frame.height - 1;
+	dda->dstart = fmax(-lheight / 2 + g()->frame.height / 2, 0);
+	dda->dend = fmin(lheight / 2 + g()->frame.height / 2, g()->frame.height);
 	tx = raycast_calctx(dda, img);
 	y = dda->dstart;
-	draw_vertical_line(dda->x, 0, dda->dstart, g()->map.ceil_color);
 	while (y < dda->dend)
 	{
-		ty = (int)(((y - dda->dstart) * img->height) / (dda->dend
-					- dda->dstart));
+		ty = (int)((y - dda->dstart) * img->height / (dda->dend - dda->dstart));
 		color = *(int *)(img->data + (ty * img->sl + tx * (img->bpp / 8)));
 		put_pixel(dda->x, y++, darken_color(color, 1 - dda->side * .6));
 	}
-	draw_vertical_line(dda->x, dda->dend, g()->frame.height,
-		g()->map.floor_color);
+	draw_vertical_line(dda->x, 0, dda->dstart, g()->map.ceil_color);
+	draw_vertical_line(dda->x, dda->dend,
+		g()->frame.height, g()->map.floor_color);
 }
 
 void	raycast(void)

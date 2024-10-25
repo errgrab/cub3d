@@ -6,7 +6,7 @@
 /*   By: ecarvalh <ecarvalh@student.42porto.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/19 16:30:51 by ecarvalh          #+#    #+#             */
-/*   Updated: 2024/10/25 15:20:52 by ecarvalh         ###   ########.fr       */
+/*   Updated: 2024/10/25 17:07:19 by ecarvalh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,11 +22,10 @@ void	put_pixel(int x, int y, int color)
 	char	*dst;
 
 	img = &g()->frame;
-	if (x >= 0 && x < img->width && y >= 0 && y < img->height)
-	{
-		dst = img->data + (y * img->sl + x * (img->bpp / 8));
-		*(int *)dst = color;
-	}
+	if (x < 0 || x >= img->width || y < 0 || y >= img->height)
+		return ;
+	dst = img->data + (y * img->sl + x * (img->bpp / 8));
+	*(int *)dst = color;
 }
 
 void	draw_vertical_line(int x, int ystart, int yend, int color)
@@ -52,7 +51,7 @@ void	draw_vertical_line(int x, int ystart, int yend, int color)
 		put_pixel(x, ystart++, color);
 }
 
-int		darken_color(int color, float factor)
+int	darken_color(int color, float factor)
 {
 	int	r;
 	int	g;
