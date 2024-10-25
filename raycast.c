@@ -6,7 +6,7 @@
 /*   By: ecarvalh <ecarvalh@student.42porto.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/19 18:27:15 by ecarvalh          #+#    #+#             */
-/*   Updated: 2024/10/24 17:21:08 by ecarvalh         ###   ########.fr       */
+/*   Updated: 2024/10/25 12:19:16 by ecarvalh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,7 +14,7 @@
 
 t_dda	raycast_start(int x);
 void	raycast_hit(t_dda *dda);
-void	raycast_draw(int x, t_dda *dda);
+void	raycast_draw(t_dda *dda, t_img *img);
 void	raycast(void);
 
 int	raycast_calctx(t_dda *dda, t_img *img)
@@ -40,6 +40,7 @@ t_dda	raycast_start(int x)
 	const float	camx = 2 * x / (float)g()->frame.width - 1;
 	t_dda		res;
 
+	res.x = x;
 	res.rdx = g()->usr.dirx + g()->usr.plx * camx;
 	res.rdy = g()->usr.diry + g()->usr.ply * camx;
 	res.mx = (int)g()->usr.posx;
@@ -83,48 +84,51 @@ void	raycast_hit(t_dda *dda)
 		else if (get_map_value(dda->mx, dda->my) < 0)
 			break ;
 	}
-}
-
-void	raycast_draw(int x, t_dda *dda)
-{
-	int	lheight;
-	int	dstart;
-	int	dend;
-
 	if (dda->side == 0)
 		dda->wdist = (dda->mx - g()->usr.posx + (1 - dda->sx) / 2) / dda->rdx;
 	else
 		dda->wdist = (dda->my - g()->usr.posy + (1 - dda->sy) / 2) / dda->rdy;
+}
+
+void	raycast_draw(t_dda *dda, t_img *img)
+{
+	int	lheight;
+	int	y;
+	int	tx;
+	int	ty;
+	int	color;
+
 	lheight = (int)(g()->frame.height / dda->wdist);
-	dstart = -lheight / 2 + g()->frame.height / 2;
-	if (dstart < 0)
-		dstart = 0;
-	dend = lheight / 2 + g()->frame.height / 2;
-	if (dend >= g()->frame.height)
-		dend = g()->frame.height - 1;
-	if (dda->side == 0)
+	dda->dstart = -lheight / 2 + g()->frame.height / 2;
+	dda->dend = lheight / 2 + g()->frame.height / 2;
+	if (dda->dstart < 0)
+		dda->dstart = 0;
+	if (dda->dend >= g()->frame.height)
+		dda->dend = g()->frame.height - 1;
+	tx = raycast_calctx(dda, img);
+	y = dda->dstart;
+	draw_vertical_line(dda->x, 0, dda->dstart, g()->map.ceil_color);
+	while (y < dda->dend)
 	{
-		draw_vertical_line(x, 0, dstart, g()->map.ceil_color);
-		draw_vertical_line(x, dstart, dend, 0xFFFFFF);
-		draw_vertical_line(x, dend, g()->frame.height, g()->map.floor_color);
-		return ;
+		ty = (int)(((y - dda->dstart) * img->height) / (dda->dend
+					- dda->dstart));
+		color = *(int *)(img->data + (ty * img->sl + tx * (img->bpp / 8)));
+		put_pixel(dda->x, y++, color);
 	}
-	draw_vertical_line(x, 0, dstart, g()->map.ceil_color);
-	draw_vertical_line(x, dstart, dend, 0xAAAAAA);
-	draw_vertical_line(x, dend, g()->frame.height, g()->map.floor_color);
+	draw_vertical_line(dda->x, dda->dend, g()->frame.height,
+		g()->map.floor_color);
 }
 
 void	raycast(void)
 {
 	t_dda	res;
-	int		x;
 
-	x = 0;
-	while (x < g()->frame.width)
+	res.x = 0;
+	while (res.x < g()->frame.width)
 	{
-		res = raycast_start(x);
+		res = raycast_start(res.x);
 		raycast_hit(&res);
-		raycast_draw(x, &res);
-		x++;
+		raycast_draw(&res, &g()->map.north);
+		res.x++;
 	}
 }

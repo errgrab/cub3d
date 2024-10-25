@@ -6,7 +6,7 @@
 /*   By: ecarvalh <ecarvalh@student.42porto.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/19 16:26:55 by ecarvalh          #+#    #+#             */
-/*   Updated: 2024/10/24 16:56:30 by ecarvalh         ###   ########.fr       */
+/*   Updated: 2024/10/25 01:44:39 by ecarvalh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -43,12 +43,9 @@ void	init_window(void)
 void	load_img(char *path, t_img *img)
 {
 	img->ptr = NULL;
-	if (ft_strstr(path, ".png"))
-		img->ptr = mlx_png_file_to_image(g()->mlx.ptr, path, &img->width,
-			&img->height);
-	else if (ft_strstr(path, ".xpm"))
+	if (ft_strstr(path, ".xpm"))
 		img->ptr = mlx_xpm_file_to_image(g()->mlx.ptr, path, &img->width,
-			&img->height);
+				&img->height);
 	else
 		write(2, "Error: Image type not implemented!\n", 35);
 	if (!img->ptr)
@@ -83,10 +80,10 @@ int	init_map_tmp(void)
 	g()->usr.posy = 5.5;
 	g()->usr.dirx = 1.0;
 	g()->usr.ply = 0.66;
-	load_img("sprite.png", g()->map.north);
-	load_img("sprite.png", g()->map.south);
-	load_img("sprite.png", g()->map.east);
-	load_img("sprite.png", g()->map.west);
+	load_img("sprite.xpm", &g()->map.north);
+	load_img("sprite.xpm", &g()->map.south);
+	load_img("sprite.xpm", &g()->map.east);
+	load_img("sprite.xpm", &g()->map.west);
 	ft_memmove(g()->map.data, map_tmp, sizeof(map_tmp));
 	return (1);
 }

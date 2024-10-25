@@ -6,7 +6,7 @@
 /*   By: ecarvalh <ecarvalh@student.42porto.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/24 14:54:28 by ecarvalh          #+#    #+#             */
-/*   Updated: 2024/10/19 18:30:32 by ecarvalh         ###   ########.fr       */
+/*   Updated: 2024/10/25 01:43:16 by ecarvalh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -41,12 +41,12 @@ int	main(int argc, char **argv)
 	g()->debug = 1;
 	g()->map.ceil_color = 0xff3322dd;
 	g()->map.floor_color = 0xff333333;
-	if (!init_map_tmp())
-		return (write(2, "Error: Could not initialize Map!\n", 33), 1);
 	mlx = &g()->mlx;
 	mlx->ptr = mlx_init();
 	if (!mlx->ptr)
 		return (write(2, "Error: Could not initialize MLX!\n", 33), 1);
+	if (!init_map_tmp())
+		return (write(2, "Error: Could not initialize Map!\n", 33), 1);
 	init_window();
 	init_frame();
 	if (!mlx->win || !g()->frame.ptr)

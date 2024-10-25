@@ -6,7 +6,7 @@
 /*   By: ecarvalh <ecarvalh@student.42porto.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/01 16:10:01 by ecarvalh          #+#    #+#             */
-/*   Updated: 2024/10/24 16:42:33 by ecarvalh         ###   ########.fr       */
+/*   Updated: 2024/10/25 12:15:14 by ecarvalh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -121,13 +121,15 @@ struct s_dda
 	float	sdx;
 	float	sdy;
 	float	wdist;
+	int		x;
 	int		mx;
 	int		my;
 	int		sx;
 	int		sy;
 	int		hit;
-	int		htry;
 	int		side;
+	int		dstart;
+	int		dend;
 };
 
 /******************************************************************************/
@@ -155,7 +157,7 @@ int		event_keyup(int keycode);
 // raycast.c
 t_dda	raycast_start(int x);
 void	raycast_hit(t_dda *dda);
-void	raycast_draw(int x, t_dda *dda);
+void	raycast_draw(t_dda *dda, t_img *img);
 void	raycast(void);
 
 // action.c
