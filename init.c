@@ -6,7 +6,7 @@
 /*   By: ecarvalh <ecarvalh@student.42porto.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/19 16:26:55 by ecarvalh          #+#    #+#             */
-/*   Updated: 2024/10/25 18:02:43 by ecarvalh         ###   ########.fr       */
+/*   Updated: 2024/10/26 19:09:16 by ecarvalh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -80,10 +80,10 @@ int	init_map_tmp(void)
 	g()->usr.posy = 5.5;
 	g()->usr.dirx = 1.0;
 	g()->usr.ply = 0.66;
-	load_img("sprite.xpm", &g()->map.north);
-	load_img("sprite.xpm", &g()->map.south);
-	load_img("sprite.xpm", &g()->map.east);
-	load_img("sprite.xpm", &g()->map.west);
+	load_img("north.xpm", &g()->map.north);
+	load_img("north.xpm", &g()->map.south);
+	load_img("south.xpm", &g()->map.east);
+	load_img("south.xpm", &g()->map.west);
 	ft_memmove(g()->map.data, map_tmp, sizeof(map_tmp));
 	return (1);
 }

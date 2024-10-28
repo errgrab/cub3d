@@ -6,7 +6,7 @@
 /*   By: ecarvalh <ecarvalh@student.42porto.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/19 18:27:15 by ecarvalh          #+#    #+#             */
-/*   Updated: 2024/10/25 18:05:08 by ecarvalh         ###   ########.fr       */
+/*   Updated: 2024/10/28 11:15:37 by ecarvalh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -98,14 +98,19 @@ void	raycast_draw(t_dda *dda, t_img *img)
 
 	lheight = (int)(g()->frame.height / dda->wdist);
 	dda->dstart = fmax(-lheight / 2 + g()->frame.height / 2, 0);
+	if (dda->dstart == 0)
+		dda->offset = -(-lheight / 2 + g()->frame.height / 2);
 	dda->dend = fmin(lheight / 2 + g()->frame.height / 2, g()->frame.height);
 	tx = raycast_calctx(dda, img);
 	y = dda->dstart;
 	while (y < dda->dend)
 	{
-		ty = (int)((y - dda->dstart) * img->height / (dda->dend - dda->dstart));
-		color = *(int *)(img->data + (ty * img->sl + tx * (img->bpp / 8)));
-		put_pixel(dda->x, y++, darken_color(color, 1 - dda->side * .6));
+		ty = (int)((y + dda->offset - dda->dstart) * img->height / lheight);
+		if (ty >= 0 && ty < img->height)
+		{
+			color = *(int *)(img->data + (ty * img->sl + tx * (img->bpp / 8)));
+			put_pixel(dda->x, y++, darken_color(color, 1 - dda->side * .6));
+		}
 	}
 	draw_vertical_line(dda->x, 0, dda->dstart, g()->map.ceil_color);
 	draw_vertical_line(dda->x, dda->dend,
@@ -121,7 +126,14 @@ void	raycast(void)
 	{
 		res = raycast_start(res.x);
 		raycast_hit(&res);
-		raycast_draw(&res, &g()->map.north);
+		if (res.side == 0 && res.rdx > 0)
+			raycast_draw(&res, &g()->map.north);
+		else if (res.side == 0 && res.rdx < 0)
+			raycast_draw(&res, &g()->map.north);
+		else if (res.side == 1 && res.rdy > 0)
+			raycast_draw(&res, &g()->map.east);
+		else if (res.side == 1 && res.rdy < 0)
+			raycast_draw(&res, &g()->map.west);
 		res.x++;
 	}
 }
