@@ -3,9 +3,9 @@ SRCS	= $(wildcard *.c)
 ODIR	= objs
 OBJS	= $(SRCS:%.c=$(ODIR)/%.o)
 CFLAGS	+= -O3 --std=c99
-CFLAGS	+= -Wall -Wextra -Werror -Wpedantic -g
+CFLAGS	+= -Wall -Wextra -Wpedantic -g
 CFLAGS	+= -I. -I$(MLX)
-CFLAGS	+= -fsanitize=address
+#CFLAGS	+= -fsanitize=address
 LDFLAGS	= -L$(MLX)
 LDLIBS	= -lmlx -lX11 -lXext -lm
 NAME	= cub3d
