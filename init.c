@@ -6,7 +6,7 @@
 /*   By: ecarvalh <ecarvalh@student.42porto.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/19 16:26:55 by ecarvalh          #+#    #+#             */
-/*   Updated: 2024/10/26 19:09:16 by ecarvalh         ###   ########.fr       */
+/*   Updated: 2024/11/08 21:31:47 by ecarvalh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -34,8 +34,8 @@ void	init_window(void)
 	t_mlx	*mlx;
 
 	mlx = &g()->mlx;
-	mlx->width = 800;
-	mlx->height = 600;
+	mlx->width = WIN_WIDTH;
+	mlx->height = WIN_HEIGHT;
 	mlx->title = "Cub3D";
 	mlx->win = mlx_new_window(mlx->ptr, mlx->width, mlx->height, mlx->title);
 }

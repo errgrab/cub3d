@@ -6,7 +6,7 @@
 /*   By: ecarvalh <ecarvalh@student.42porto.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/19 18:27:15 by ecarvalh          #+#    #+#             */
-/*   Updated: 2024/10/29 17:24:07 by ecarvalh         ###   ########.fr       */
+/*   Updated: 2024/11/08 21:29:25 by ecarvalh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -106,7 +106,9 @@ void	raycast_draw(t_dda *dda, t_img *img)
 	while (y < dda->dend)
 	{
 		ty = (int)((y + dda->offset - dda->dstart) * img->height / lheight);
-		color = *(int *)(img->data + (ty * img->sl + tx * (img->bpp / 8)));
+		color = 0;
+		if (ty >= 0 && ty < img->height)
+			color = *(int *)(img->data + (ty * img->sl + tx * (img->bpp / 8)));
 		put_pixel(dda->x, y++, darken_color(color, 1 - dda->side * .6));
 	}
 	draw_vertical_line(dda->x, 0, dda->dstart, g()->map.ceil_color);
