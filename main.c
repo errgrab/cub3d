@@ -12,6 +12,8 @@
 
 #include "cub3d.h"
 
+void	debug(void);
+
 int	get_map_value(int x, int y)
 {
 	if (x < 0 || x >= g()->map.width || y < 0 || y >= g()->map.height)
@@ -42,15 +44,58 @@ int	main(int argc, char **argv)
 	if (parsing())
 		return (1);
 	// DEBUG
-	printf("ceil_color: %x\n", g()->map.ceil_color);
-	printf("floor_color: %x\n", g()->map.floor_color);
+	debug();
 
-	write(1, "here\n", 5);
-	sleep(1);
 	mlx_hook(g()->mlx.win, ON_DESTROY, 0, event_quit, NULL);
 	mlx_hook(g()->mlx.win, ON_KEYDOWN, 1, event_keydown, NULL);
 	mlx_hook(g()->mlx.win, ON_KEYUP, 2, event_keyup, NULL);
 	mlx_loop_hook(g()->mlx.ptr, loop, NULL);
 	mlx_loop(g()->mlx.ptr);
 	return (0);
+}
+
+void debug(void)
+{
+	printf("DEBUG\n");
+	printf("Ceiling color: A=%d, R=%d, G=%d, B=%d\n",
+		   (g()->map.ceil_color >> 24) & 0xFF,
+		   (g()->map.ceil_color >> 16) & 0xFF,
+		   (g()->map.ceil_color >> 8) & 0xFF,
+		   (g()->map.ceil_color) & 0xFF);
+
+	printf("Floor color: A=%d, R=%d, G=%d, B=%d\n",
+		   (g()->map.floor_color >> 24) & 0xFF,
+		   (g()->map.floor_color >> 16) & 0xFF,
+		   (g()->map.floor_color >> 8) & 0xFF,
+		   (g()->map.floor_color) & 0xFF);
+
+	printf("Map size: %dx%d\n", g()->map.width, g()->map.height);
+	printf("Player position: x=%f, y=%f\n", g()->usr.posx, g()->usr.posy);
+	printf("Player direction: x=%f, y=%f\n", g()->usr.dirx, g()->usr.diry);
+	printf("Player plane: %f\n", g()->usr.ply);
+
+	printf("\nmap:\n");
+	int i = -1;
+	int j;
+	while (++i < g()->map.height)
+	{
+		j = -1;
+		while (++j < g()->map.width)
+			printf("%d", g()->map.data[i * g()->map.width + j]);
+		printf("\n");
+	}
+
+	void *win = mlx_new_window(g()->mlx.ptr, 1200, 1200, "Cub3D");
+	sleep(1);
+	mlx_put_image_to_window(g()->mlx.ptr, win, g()->map.north.ptr, 0, 0);
+	sleep(1);
+	mlx_put_image_to_window(g()->mlx.ptr, win, g()->map.south.ptr, 25, 25);
+	sleep(1);
+	mlx_put_image_to_window(g()->mlx.ptr, win, g()->map.east.ptr, 50, 50);
+	sleep(1);
+	mlx_put_image_to_window(g()->mlx.ptr, win, g()->map.west.ptr, 75, 75);
+	sleep(1);
+
+	mlx_destroy_window(g()->mlx.ptr, win);
+	sleep(1);
 }
