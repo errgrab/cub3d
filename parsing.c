@@ -39,7 +39,6 @@ int	parsing(void)
 	close(parsing_data->fd);
 	if (get_data(parsing_data))
 		return (1);
-	printf("buffer: \n%s\n", parsing_data->buffer);
 	parsing_free(parsing_data, 0);
 	return (0);
 }

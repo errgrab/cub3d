@@ -67,7 +67,7 @@ int	load_texture(char *file, t_parsing *p_data, char *type)
 	int		width;
 	int		height;
 
-	img_ptr = mlx_xpm_file_to_image(p_data->mlx, file, &width, &height);
+	img_ptr = mlx_xpm_file_to_image(p_data->mlx->ptr, file, &width, &height);
 	if (!img_ptr)
 		return (1);
 	if (ft_strncmp(type, "north", 5) == 0)
@@ -81,5 +81,7 @@ int	load_texture(char *file, t_parsing *p_data, char *type)
 	img->ptr = img_ptr;
 	img->width = width;
 	img->height = height;
+	img->data = mlx_get_data_addr(img->ptr,
+								  &img->bpp, &img->sl, &img->endian);
 	return (0);
 }
