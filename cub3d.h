@@ -14,6 +14,7 @@
 # define CUB3D_H
 
 # include <stdlib.h>     // malloc, free, size_t, exit, etc...
+# include <fcntl.h>		 // open
 # include <stdio.h>      // printf
 # include <sys/time.h>   // gettimeofday
 # include <unistd.h>     // read, write
@@ -34,6 +35,15 @@
 # define WIN_HEIGHT 600
 //define WIN_WIDTH 200
 //define WIN_HEIGHT 200
+
+// Parsing defines
+# define MAP_SIZE_MAX 1048576
+# define ALLOWED_CHARS "01NESW "
+# define MOVE_AREA "0"
+# define USER_POS "NESW"
+# define WALL "1"
+# define EMPTY_SPACE " "
+# define PLY_CONST 0.66
 
 /******************************************************************************/
 
@@ -138,6 +148,21 @@ struct s_dda
 	int		offset;
 };
 
+typedef struct s_parsing
+{
+	t_map	*map;
+	t_usr	*usr;
+	t_mlx	*mlx;
+	int		fd;
+	char	buffer[MAP_SIZE_MAX];
+	char	**buffer_split;
+	int		ceiling_color;
+	int		floor_color;
+	char	**map_temp;
+	int		map_start;
+	int		map_end;
+}	t_parsing;
+
 /******************************************************************************/
 
 // main.c
@@ -178,5 +203,49 @@ int		darken_color(int color, float factor);
 // ft_memmove.c
 void	*ft_memmove(void *dest, const void *src, size_t n);
 char	*ft_strstr(const char *s1, const char *s2);
+
+// ft_calloc.c
+void	*ft_calloc(size_t nmemb, size_t size);
+
+// parsing.c
+int		parsing(void);
+int		get_data(t_parsing *parsing_data);
+int		write_error(int type, t_parsing *parsing_data);
+void	parsing_free(t_parsing *parsing_data, int images);
+int		convert_map(t_parsing *p_data);
+
+// parsing_ceiling_floor_color.c
+int		get_ceiling_floor_color(t_parsing *parsing_data);
+int		parse_int(char *line);
+int		parse_color(char *line);
+
+// parsing_texture.c
+int		get_textures(t_parsing *parsing_data);
+int		load_texture(char *file, t_parsing *p_data, char *type);
+int		check_line(char *buffer_split, t_parsing *p_data);
+
+// parsing_map.c
+int		get_map(t_parsing *p_data);
+void	get_map_dimensions(t_parsing *p_data);
+int		set_map_temp(t_parsing *p_data);
+int		check_map(t_parsing *p_data);
+int		check_path(t_parsing *p_data, int i, int j);
+
+// parsing_usr.c
+int		get_usr(t_parsing *p_data);
+void	get_user_info(t_parsing *p_data, int y, int x);
+
+// parsing_utils.c
+void	*ft_calloc2(size_t nmemb, size_t size);
+int		ft_strlen(char *s);
+char	*ft_strchr(char *s, int c);
+void	*ft_memset(void *str, int c, size_t n);
+
+// parsing_utils2.c
+void	remove_first_line(char *buffer);
+char	**ft_split(char *str, char c);
+void	ft_array_free(char **array);
+int		ft_strncmp(const char *s1, const char *s2, size_t n);
+
 
 #endif // CUB3D_H

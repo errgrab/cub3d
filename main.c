@@ -34,27 +34,17 @@ int	loop(void)
 // mlx_do_key_autorepeatoff(mlx->ptr); //> TODO: test it later
 int	main(int argc, char **argv)
 {
-	t_mlx	*mlx;
-
 	g()->argc = argc;
 	g()->argv = argv;
 	g()->debug = 1;
 	g()->map.ceil_color = 0xff3322dd;
 	g()->map.floor_color = 0xff333333;
-	mlx = &g()->mlx;
-	mlx->ptr = mlx_init();
-	if (!mlx->ptr)
-		return (write(2, "Error: Could not initialize MLX!\n", 33), 1);
-	if (!init_map_tmp())
-		return (write(2, "Error: Could not initialize Map!\n", 33), 1);
-	init_window();
-	init_frame();
-	if (!mlx->win || !g()->frame.ptr)
-		return (write(2, "Error: Could not initialize window!\n", 36), 1);
-	mlx_hook(mlx->win, ON_DESTROY, 0, event_quit, NULL);
-	mlx_hook(mlx->win, ON_KEYDOWN, 1, event_keydown, NULL);
-	mlx_hook(mlx->win, ON_KEYUP, 2, event_keyup, NULL);
-	mlx_loop_hook(mlx->ptr, loop, NULL);
-	mlx_loop(mlx->ptr);
+	if (parsing())
+		return (1);
+	mlx_hook(g()->mlx.win, ON_DESTROY, 0, event_quit, NULL);
+	mlx_hook(g()->mlx.win, ON_KEYDOWN, 1, event_keydown, NULL);
+	mlx_hook(g()->mlx.win, ON_KEYUP, 2, event_keyup, NULL);
+	mlx_loop_hook(g()->mlx.ptr, loop, NULL);
+	mlx_loop(g()->mlx.ptr);
 	return (0);
 }
