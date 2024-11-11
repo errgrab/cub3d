@@ -6,7 +6,7 @@
 /*   By: ecarvalh <ecarvalh@student.42porto.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/19 18:27:15 by ecarvalh          #+#    #+#             */
-/*   Updated: 2024/11/11 17:48:23 by ecarvalh         ###   ########.fr       */
+/*   Updated: 2024/11/11 18:08:13 by ecarvalh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -103,8 +103,6 @@ void	raycast_draw(t_dda *dda, t_img *img)
 	dda->dend = fmin(lheight / 2 + g()->frame.height / 2, g()->frame.height);
 	tx = raycast_calctx(dda, img);
 	y = dda->dstart;
-	ty = 0;
-	color = 0;
 	while (y < dda->dend)
 	{
 		ty = (int)((y + dda->offset - dda->dstart) * img->height / lheight);
