@@ -6,7 +6,7 @@
 /*   By: ecarvalh <ecarvalh@student.42porto.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/01 16:10:01 by ecarvalh          #+#    #+#             */
-/*   Updated: 2024/11/08 21:32:08 by ecarvalh         ###   ########.fr       */
+/*   Updated: 2024/11/11 17:36:08 by ecarvalh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,10 +30,10 @@
 # define SPEED 3
 # define ROT_SPEED 3
 
-//# define WIN_WIDTH 800
-//# define WIN_HEIGHT 600
-# define WIN_WIDTH 200
-# define WIN_HEIGHT 200
+# define WIN_WIDTH 800
+# define WIN_HEIGHT 600
+//define WIN_WIDTH 200
+//define WIN_HEIGHT 200
 
 /******************************************************************************/
 
