@@ -58,13 +58,13 @@ int	set_map_temp(t_parsing *p_data)
 	int	j;
 	int	z;
 
-	p_data->map_temp = ft_calloc(p_data->map->height + 1, sizeof(char *));
+	p_data->map_temp = ft_calloc2(p_data->map->height + 1, sizeof(char *));
 	if (!p_data->map_temp)
 		return (1);
 	i = -1;
 	while (++i < p_data->map->height)
 	{
-		p_data->map_temp[i] = ft_calloc(p_data->map->width + 1, sizeof(char));
+		p_data->map_temp[i] = ft_calloc2(p_data->map->width + 1, sizeof(char));
 		if (!p_data->map_temp[i])
 			return (1);
 	}

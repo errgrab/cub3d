@@ -247,5 +247,4 @@ char	**ft_split(char *str, char c);
 void	ft_array_free(char **array);
 int		ft_strncmp(const char *s1, const char *s2, size_t n);
 
-
 #endif // CUB3D_H

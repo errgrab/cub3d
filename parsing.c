@@ -132,13 +132,13 @@ void	parsing_free(t_parsing *p_data, int images)
 		free(p_data->map_temp[i]);
 	free(p_data->map_temp);
 	if (p_data->map->north.ptr && images)
-		mlx_destroy_image(p_data->mlx, p_data->map->north.ptr);
+		mlx_destroy_image(p_data->mlx->ptr, p_data->map->north.ptr);
 	if (p_data->map->south.ptr && images)
-		mlx_destroy_image(p_data->mlx, p_data->map->south.ptr);
+		mlx_destroy_image(p_data->mlx->ptr, p_data->map->south.ptr);
 	if (p_data->map->east.ptr && images)
-		mlx_destroy_image(p_data->mlx, p_data->map->east.ptr);
+		mlx_destroy_image(p_data->mlx->ptr, p_data->map->east.ptr);
 	if (p_data->map->west.ptr && images)
-		mlx_destroy_image(p_data->mlx, p_data->map->west.ptr);
+		mlx_destroy_image(p_data->mlx->ptr, p_data->map->west.ptr);
 	if (p_data->mlx && p_data->mlx->ptr && images)
 		mlx_destroy_display(p_data->mlx->ptr);
 	if (p_data->mlx && p_data->mlx->ptr && images)

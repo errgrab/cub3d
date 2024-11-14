@@ -82,6 +82,6 @@ int	load_texture(char *file, t_parsing *p_data, char *type)
 	img->width = width;
 	img->height = height;
 	img->data = mlx_get_data_addr(img->ptr,
-								  &img->bpp, &img->sl, &img->endian);
+			&img->bpp, &img->sl, &img->endian);
 	return (0);
 }
