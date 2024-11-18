@@ -41,6 +41,12 @@ int	main(int argc, char **argv)
 	g()->map.floor_color = 0xff333333;
 	if (parsing())
 		return (1);
+
+	printf("usr.dirx: %f\n", g()->usr.dirx);
+	printf("usr.diry: %f\n", g()->usr.diry);
+	printf("usr.ply: %f\n", g()->usr.ply);
+	printf("usr.plx: %f\n", g()->usr.plx);
+
 	mlx_hook(g()->mlx.win, ON_DESTROY, 0, event_quit, NULL);
 	mlx_hook(g()->mlx.win, ON_KEYDOWN, 1, event_keydown, NULL);
 	mlx_hook(g()->mlx.win, ON_KEYUP, 2, event_keyup, NULL);

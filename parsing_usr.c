@@ -43,20 +43,43 @@ int	get_usr(t_parsing *p_data)
 
 void	get_user_info(t_parsing *p_data, int y, int x)
 {
-	int	length;
 	int	i;
 
 	p_data->usr->posx = x + 0.5;
 	p_data->usr->posy = y + 0.5;
-	p_data->usr->ply = PLY_CONST;
-	length = sizeof(USER_POS) - 1;
 	i = -1;
-	while (++i < length)
+	while (USER_POS[++i])
 	{
 		if (USER_POS[i] == p_data->map_temp[y][x])
 		{
-			p_data->usr->dirx = sin(M_PI * 2 * i / length);
-			p_data->usr->diry = cos(M_PI * 2 * i / length);
+			if (USER_POS[i] == 'S')
+			{
+				p_data->usr->dirx = 0.0;
+				p_data->usr->diry = 1.0;
+				p_data->usr->ply = 0.0;
+				p_data->usr->plx = -0.66;
+			}
+			else if (USER_POS[i] == 'E')
+			{
+				p_data->usr->dirx = 1.0;
+				p_data->usr->diry = 0.0;
+				p_data->usr->ply = 0.66;
+				p_data->usr->plx = 0.0;
+			}
+			else if (USER_POS[i] == 'N')
+			{
+				p_data->usr->dirx = 0.0;
+				p_data->usr->diry = -1.0;
+				p_data->usr->ply = 0.0;
+				p_data->usr->plx = 0.66;
+			}
+			else if (USER_POS[i] == 'W')
+			{
+				p_data->usr->dirx = -1.0;
+				p_data->usr->diry = 0.0;
+				p_data->usr->ply = -0.66;
+				p_data->usr->plx = 0.0;
+			}
 			return ;
 		}
 	}
