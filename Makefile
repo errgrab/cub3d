@@ -13,7 +13,7 @@ NAME	= cub3d
 all: $(NAME) test
 
 test: $(NAME)
-	./$(NAME)
+	./$(NAME) subject.cub
 
 leak: $(NAME)
 	valgrind --leak-check=full --show-leak-kinds=all ./$(NAME)
